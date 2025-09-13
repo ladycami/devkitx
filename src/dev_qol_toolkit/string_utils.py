@@ -4,6 +4,7 @@ This module provides comprehensive string manipulation functions including
 case conversions, validation, sanitization, and text processing utilities.
 """
 
+import re
 from typing import Any
 
 __all__ = [
@@ -22,27 +23,72 @@ __all__ = [
 def to_pascal_case(text: str) -> str:
     """Convert text to PascalCase.
     
+    Converts snake_case, kebab-case, camelCase, and space-separated text to PascalCase.
+    
     Args:
         text: Input text to convert
         
     Returns:
         Text converted to PascalCase
+        
+    Examples:
+        >>> to_pascal_case("hello_world")
+        'HelloWorld'
+        >>> to_pascal_case("hello-world")
+        'HelloWorld'
+        >>> to_pascal_case("hello world")
+        'HelloWorld'
+        >>> to_pascal_case("helloWorld")
+        'HelloWorld'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 2.1")
+    if not text:
+        return ""
+    
+    # Split on common delimiters and camelCase boundaries
+    words = re.split(r'[-_\s]+|(?<=[a-z])(?=[A-Z])', text)
+    
+    # Filter out empty strings and capitalize each word
+    return ''.join(word.capitalize() for word in words if word)
 
 
 def to_kebab_case(text: str) -> str:
     """Convert text to kebab-case.
+    
+    Converts snake_case, PascalCase, camelCase, and space-separated text to kebab-case.
     
     Args:
         text: Input text to convert
         
     Returns:
         Text converted to kebab-case
+        
+    Examples:
+        >>> to_kebab_case("HelloWorld")
+        'hello-world'
+        >>> to_kebab_case("hello_world")
+        'hello-world'
+        >>> to_kebab_case("hello world")
+        'hello-world'
+        >>> to_kebab_case("helloWorld")
+        'hello-world'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 2.1")
+    if not text:
+        return ""
+    
+    # Insert hyphens before uppercase letters that follow lowercase letters or digits
+    text = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', '-', text)
+    
+    # Insert hyphens between consecutive uppercase letters and following lowercase letters
+    text = re.sub(r'(?<=[A-Z])(?=[A-Z][a-z])', '-', text)
+    
+    # Replace underscores and spaces with hyphens
+    text = re.sub(r'[_\s]+', '-', text)
+    
+    # Convert to lowercase and remove multiple consecutive hyphens
+    text = re.sub(r'-+', '-', text.lower())
+    
+    # Remove leading/trailing hyphens
+    return text.strip('-')
 
 
 def template_safe_substitute(template: str, **kwargs: Any) -> str:
