@@ -4,6 +4,7 @@ This module provides utilities for system information, process execution,
 and cross-platform system operations.
 """
 
+import asyncio
 import os
 import platform
 import subprocess
@@ -36,10 +37,49 @@ def run_command(
         cwd: Optional working directory
         
     Returns:
-        CompletedProcess result
+        CompletedProcess result with stdout and stderr as strings
+        
+    Raises:
+        subprocess.TimeoutExpired: If command times out
+        subprocess.CalledProcessError: If command returns non-zero exit code
+        FileNotFoundError: If command executable is not found
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 5.2")
+    if not cmd:
+        raise ValueError("Command list cannot be empty")
+    
+    # Convert Path to string if needed
+    if cwd is not None:
+        cwd = str(cwd)
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=cwd,
+            check=True
+        )
+        return result
+    except subprocess.TimeoutExpired as e:
+        # Re-raise with more context
+        raise subprocess.TimeoutExpired(
+            cmd=e.cmd,
+            timeout=e.timeout,
+            output=e.output,
+            stderr=e.stderr
+        ) from e
+    except subprocess.CalledProcessError as e:
+        # Re-raise with more context
+        raise subprocess.CalledProcessError(
+            returncode=e.returncode,
+            cmd=e.cmd,
+            output=e.output,
+            stderr=e.stderr
+        ) from e
+    except FileNotFoundError as e:
+        # Provide more helpful error message
+        raise FileNotFoundError(f"Command '{cmd[0]}' not found in PATH") from e
 
 
 async def run_command_async(
@@ -53,10 +93,61 @@ async def run_command_async(
         timeout: Optional timeout in seconds
         
     Returns:
-        CompletedProcess result
+        CompletedProcess result with stdout and stderr as strings
+        
+    Raises:
+        asyncio.TimeoutError: If command times out
+        subprocess.CalledProcessError: If command returns non-zero exit code
+        FileNotFoundError: If command executable is not found
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 5.2")
+    if not cmd:
+        raise ValueError("Command list cannot be empty")
+    
+    try:
+        # Create subprocess
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        # Wait for completion with timeout
+        stdout, stderr = await asyncio.wait_for(
+            process.communicate(),
+            timeout=timeout
+        )
+        
+        # Decode output
+        stdout_str = stdout.decode('utf-8') if stdout else ''
+        stderr_str = stderr.decode('utf-8') if stderr else ''
+        
+        # Create CompletedProcess-like result
+        result = subprocess.CompletedProcess(
+            args=cmd,
+            returncode=process.returncode or 0,
+            stdout=stdout_str,
+            stderr=stderr_str
+        )
+        
+        # Check return code
+        if result.returncode != 0:
+            raise subprocess.CalledProcessError(
+                returncode=result.returncode,
+                cmd=cmd,
+                output=stdout_str,
+                stderr=stderr_str
+            )
+        
+        return result
+        
+    except asyncio.TimeoutError as e:
+        # Kill the process if it's still running
+        if process and process.returncode is None:
+            process.kill()
+            await process.wait()
+        raise asyncio.TimeoutError(f"Command '{' '.join(cmd)}' timed out after {timeout} seconds") from e
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Command '{cmd[0]}' not found in PATH") from e
 
 
 def get_system_info() -> dict[str, str]:

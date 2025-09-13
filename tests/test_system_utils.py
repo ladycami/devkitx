@@ -1,12 +1,19 @@
 """Tests for system_utils module."""
 
+import asyncio
 import platform
+import subprocess
 import sys
 from unittest.mock import patch
 
 import pytest
 
-from dev_qol_toolkit.system_utils import get_python_info, get_system_info
+from dev_qol_toolkit.system_utils import (
+    get_python_info,
+    get_system_info,
+    run_command,
+    run_command_async,
+)
 
 
 class TestGetSystemInfo:
@@ -103,6 +110,126 @@ class TestGetPythonInfo:
         """Test that prefix matches sys.prefix."""
         result = get_python_info()
         assert result['prefix'] == sys.prefix
+
+
+class TestRunCommand:
+    """Tests for run_command function."""
+
+    def test_run_command_success(self):
+        """Test successful command execution."""
+        result = run_command(['echo', 'hello'])
+        assert result.returncode == 0
+        assert 'hello' in result.stdout
+
+    def test_run_command_with_args(self):
+        """Test command execution with multiple arguments."""
+        result = run_command(['echo', 'hello', 'world'])
+        assert result.returncode == 0
+        assert 'hello world' in result.stdout
+
+    def test_run_command_empty_list_raises_error(self):
+        """Test that empty command list raises ValueError."""
+        with pytest.raises(ValueError, match="Command list cannot be empty"):
+            run_command([])
+
+    def test_run_command_nonexistent_command(self):
+        """Test that nonexistent command raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError, match="Command 'nonexistent_command_xyz' not found in PATH"):
+            run_command(['nonexistent_command_xyz'])
+
+    def test_run_command_with_timeout(self):
+        """Test command execution with timeout."""
+        # This should complete quickly
+        result = run_command(['echo', 'hello'], timeout=5.0)
+        assert result.returncode == 0
+
+    def test_run_command_timeout_expires(self):
+        """Test that long-running command times out."""
+        with pytest.raises(subprocess.TimeoutExpired):
+            run_command(['sleep', '2'], timeout=0.1)
+
+    def test_run_command_with_cwd(self, tmp_path):
+        """Test command execution with working directory."""
+        # Create a test file in temp directory
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("test content")
+        
+        # Run ls/dir command in that directory
+        if platform.system() == "Windows":
+            result = run_command(['dir', '/b'], cwd=tmp_path)
+        else:
+            result = run_command(['ls'], cwd=tmp_path)
+        
+        assert result.returncode == 0
+        assert 'test.txt' in result.stdout
+
+    def test_run_command_failing_command(self):
+        """Test that failing command raises CalledProcessError."""
+        with pytest.raises(subprocess.CalledProcessError):
+            run_command(['false'])  # 'false' command always returns 1
+
+
+class TestRunCommandAsync:
+    """Tests for run_command_async function."""
+
+    def test_run_command_async_success(self):
+        """Test successful async command execution."""
+        async def _test():
+            result = await run_command_async(['echo', 'hello'])
+            assert result.returncode == 0
+            assert 'hello' in result.stdout
+        
+        asyncio.run(_test())
+
+    def test_run_command_async_with_args(self):
+        """Test async command execution with multiple arguments."""
+        async def _test():
+            result = await run_command_async(['echo', 'hello', 'world'])
+            assert result.returncode == 0
+            assert 'hello world' in result.stdout
+        
+        asyncio.run(_test())
+
+    def test_run_command_async_empty_list_raises_error(self):
+        """Test that empty command list raises ValueError."""
+        async def _test():
+            with pytest.raises(ValueError, match="Command list cannot be empty"):
+                await run_command_async([])
+        
+        asyncio.run(_test())
+
+    def test_run_command_async_nonexistent_command(self):
+        """Test that nonexistent command raises FileNotFoundError."""
+        async def _test():
+            with pytest.raises(FileNotFoundError, match="Command 'nonexistent_command_xyz' not found in PATH"):
+                await run_command_async(['nonexistent_command_xyz'])
+        
+        asyncio.run(_test())
+
+    def test_run_command_async_with_timeout(self):
+        """Test async command execution with timeout."""
+        async def _test():
+            # This should complete quickly
+            result = await run_command_async(['echo', 'hello'], timeout=5.0)
+            assert result.returncode == 0
+        
+        asyncio.run(_test())
+
+    def test_run_command_async_timeout_expires(self):
+        """Test that long-running async command times out."""
+        async def _test():
+            with pytest.raises(asyncio.TimeoutError):
+                await run_command_async(['sleep', '2'], timeout=0.1)
+        
+        asyncio.run(_test())
+
+    def test_run_command_async_failing_command(self):
+        """Test that failing async command raises CalledProcessError."""
+        async def _test():
+            with pytest.raises(subprocess.CalledProcessError):
+                await run_command_async(['false'])  # 'false' command always returns 1
+        
+        asyncio.run(_test())
 
 
 class TestCrossPlatformCompatibility:
