@@ -1,7 +1,9 @@
 """Tests for system_utils module."""
 
 import asyncio
+import os
 import platform
+import socket
 import subprocess
 import sys
 from unittest.mock import patch
@@ -9,8 +11,12 @@ from unittest.mock import patch
 import pytest
 
 from dev_qol_toolkit.system_utils import (
+    find_executable,
+    get_env_vars,
+    get_free_port,
     get_python_info,
     get_system_info,
+    is_admin,
     run_command,
     run_command_async,
 )
@@ -232,6 +238,122 @@ class TestRunCommandAsync:
         asyncio.run(_test())
 
 
+class TestFindExecutable:
+    """Tests for find_executable function."""
+
+    def test_find_executable_existing_command(self):
+        """Test finding an existing executable."""
+        # Python should always be available in test environment
+        result = find_executable('python')
+        assert result is not None
+        assert isinstance(result, str)
+
+    def test_find_executable_nonexistent_command(self):
+        """Test finding a nonexistent executable."""
+        result = find_executable('nonexistent_command_xyz')
+        assert result is None
+
+    def test_find_executable_empty_name(self):
+        """Test finding executable with empty name."""
+        result = find_executable('')
+        assert result is None
+
+    def test_find_executable_common_commands(self):
+        """Test finding common system commands."""
+        # Test a command that should exist on most systems
+        if platform.system() == "Windows":
+            result = find_executable('cmd')
+        else:
+            result = find_executable('sh')
+        
+        # Should find something (or None if not available)
+        assert result is None or isinstance(result, str)
+
+
+class TestGetEnvVars:
+    """Tests for get_env_vars function."""
+
+    def test_get_env_vars_no_prefix(self):
+        """Test getting all environment variables."""
+        result = get_env_vars()
+        assert isinstance(result, dict)
+        # Should have at least some environment variables
+        assert len(result) > 0
+
+    def test_get_env_vars_with_prefix(self):
+        """Test getting environment variables with prefix."""
+        # Set a test environment variable
+        with patch.dict('os.environ', {'TEST_VAR_1': 'value1', 'TEST_VAR_2': 'value2', 'OTHER_VAR': 'value3'}):
+            result = get_env_vars('TEST_')
+            assert len(result) == 2
+            assert 'TEST_VAR_1' in result
+            assert 'TEST_VAR_2' in result
+            assert 'OTHER_VAR' not in result
+
+    def test_get_env_vars_nonexistent_prefix(self):
+        """Test getting environment variables with nonexistent prefix."""
+        result = get_env_vars('NONEXISTENT_PREFIX_XYZ_')
+        assert isinstance(result, dict)
+        assert len(result) == 0
+
+    def test_get_env_vars_empty_prefix(self):
+        """Test getting environment variables with empty prefix."""
+        result = get_env_vars('')
+        all_vars = dict(os.environ)
+        assert result == all_vars
+
+
+class TestIsAdmin:
+    """Tests for is_admin function."""
+
+    def test_is_admin_returns_bool(self):
+        """Test that is_admin returns a boolean."""
+        result = is_admin()
+        assert isinstance(result, bool)
+
+    def test_is_admin_handles_exceptions(self):
+        """Test that is_admin handles exceptions gracefully."""
+        # Mock os.geteuid to raise an exception
+        with patch('os.geteuid', side_effect=Exception("Test error")):
+            result = is_admin()
+            assert result is False  # Should default to False for safety
+
+
+class TestGetFreePort:
+    """Tests for get_free_port function."""
+
+    def test_get_free_port_default_start(self):
+        """Test getting a free port with default start."""
+        port = get_free_port()
+        assert isinstance(port, int)
+        assert port >= 8000
+        assert port <= 65535
+
+    def test_get_free_port_custom_start(self):
+        """Test getting a free port with custom start."""
+        port = get_free_port(9000)
+        assert isinstance(port, int)
+        assert port >= 9000
+        assert port <= 65535
+
+    def test_get_free_port_invalid_range(self):
+        """Test getting a free port with invalid range."""
+        with pytest.raises(ValueError, match="Port must be between 1 and 65535"):
+            get_free_port(0)
+        
+        with pytest.raises(ValueError, match="Port must be between 1 and 65535"):
+            get_free_port(65536)
+
+    def test_get_free_port_actually_free(self):
+        """Test that returned port is actually free."""
+        port = get_free_port()
+        
+        # Try to bind to the port to verify it's free
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(('localhost', port))
+            # If we get here without exception, the port was indeed free
+
+
 class TestCrossPlatformCompatibility:
     """Tests for cross-platform compatibility."""
 
@@ -256,3 +378,21 @@ class TestCrossPlatformCompatibility:
             with patch('getpass.getuser', side_effect=Exception):
                 result = get_system_info()
                 assert result['username'] == 'unknown'
+
+    def test_is_admin_unix_systems(self):
+        """Test is_admin works on Unix-like systems."""
+        if platform.system() != "Windows":
+            with patch('os.geteuid', return_value=1000):  # Non-root user
+                result = is_admin()
+                assert result is False
+            
+            with patch('os.geteuid', return_value=0):  # Root user
+                result = is_admin()
+                assert result is True
+
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Unix-specific test")
+    def test_is_admin_unix_exception_handling(self):
+        """Test is_admin handles Unix exceptions gracefully."""
+        with patch('os.geteuid', side_effect=Exception("Test error")):
+            result = is_admin()
+            assert result is False

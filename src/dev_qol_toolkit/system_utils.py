@@ -7,6 +7,8 @@ and cross-platform system operations.
 import asyncio
 import os
 import platform
+import shutil
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -213,8 +215,11 @@ def find_executable(name: str) -> str | None:
     Returns:
         Path to executable or None if not found
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 5.3")
+    if not name:
+        return None
+    
+    # Use shutil.which which handles cross-platform executable finding
+    return shutil.which(name)
 
 
 def get_env_vars(prefix: str = "") -> dict[str, str]:
@@ -224,10 +229,16 @@ def get_env_vars(prefix: str = "") -> dict[str, str]:
         prefix: Optional prefix to filter variables
         
     Returns:
-        Dictionary of environment variables
+        Dictionary of environment variables matching the prefix
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 5.3")
+    if not prefix:
+        return dict(os.environ)
+    
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if key.startswith(prefix)
+    }
 
 
 def is_admin() -> bool:
@@ -236,8 +247,16 @@ def is_admin() -> bool:
     Returns:
         True if running as admin/root, False otherwise
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 5.3")
+    try:
+        if platform.system() == "Windows":
+            import ctypes
+            return ctypes.windll.shell32.IsUserAnAdmin() != 0
+        else:
+            # Unix-like systems (Linux, macOS)
+            return os.geteuid() == 0
+    except Exception:
+        # If we can't determine, assume not admin for safety
+        return False
 
 
 def get_free_port(start: int = 8000) -> int:
@@ -248,6 +267,22 @@ def get_free_port(start: int = 8000) -> int:
         
     Returns:
         Available port number
+        
+    Raises:
+        OSError: If no free port is found in reasonable range
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 5.3")
+    if start < 1 or start > 65535:
+        raise ValueError("Port must be between 1 and 65535")
+    
+    # Try ports starting from the given number
+    for port in range(start, 65536):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind(('localhost', port))
+                return port
+        except OSError:
+            # Port is in use, try next one
+            continue
+    
+    # If we get here, no free port was found
+    raise OSError(f"No free port found starting from {start}")
