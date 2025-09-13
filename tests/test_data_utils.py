@@ -178,3 +178,134 @@ def test_deep_diff_type_changes():
     }
     
     assert result == expected
+
+
+def test_group_by_simple():
+    """Test basic group_by functionality."""
+    items = [1, 2, 3, 4, 5, 6]
+    result = data_utils.group_by(items, lambda x: x % 2)
+    
+    expected = {
+        0: [2, 4, 6],
+        1: [1, 3, 5]
+    }
+    assert result == expected
+
+
+def test_group_by_objects():
+    """Test group_by with objects."""
+    items = [
+        {"name": "Alice", "department": "Engineering"},
+        {"name": "Bob", "department": "Engineering"},
+        {"name": "Charlie", "department": "Sales"},
+        {"name": "Diana", "department": "Sales"}
+    ]
+    
+    result = data_utils.group_by(items, lambda x: x["department"])
+    
+    expected = {
+        "Engineering": [
+            {"name": "Alice", "department": "Engineering"},
+            {"name": "Bob", "department": "Engineering"}
+        ],
+        "Sales": [
+            {"name": "Charlie", "department": "Sales"},
+            {"name": "Diana", "department": "Sales"}
+        ]
+    }
+    assert result == expected
+
+
+def test_group_by_empty_list():
+    """Test group_by with empty list."""
+    result = data_utils.group_by([], lambda x: x)
+    assert result == {}
+
+
+def test_group_by_single_group():
+    """Test group_by where all items belong to same group."""
+    items = [1, 3, 5, 7]
+    result = data_utils.group_by(items, lambda x: "odd")
+    
+    expected = {"odd": [1, 3, 5, 7]}
+    assert result == expected
+
+
+def test_filter_dict_simple():
+    """Test basic filter_dict functionality."""
+    data = {"a": 1, "b": 2, "c": 3, "d": 4}
+    result = data_utils.filter_dict(data, lambda k, v: v > 2)
+    
+    expected = {"c": 3, "d": 4}
+    assert result == expected
+
+
+def test_filter_dict_by_key():
+    """Test filter_dict filtering by key."""
+    data = {"apple": 1, "banana": 2, "cherry": 3, "date": 4}
+    result = data_utils.filter_dict(data, lambda k, v: k.startswith("a") or k.startswith("c"))
+    
+    expected = {"apple": 1, "cherry": 3}
+    assert result == expected
+
+
+def test_filter_dict_empty():
+    """Test filter_dict with empty dictionary."""
+    result = data_utils.filter_dict({}, lambda k, v: True)
+    assert result == {}
+
+
+def test_filter_dict_no_matches():
+    """Test filter_dict where no items match."""
+    data = {"a": 1, "b": 2, "c": 3}
+    result = data_utils.filter_dict(data, lambda k, v: v > 10)
+    assert result == {}
+
+
+def test_filter_dict_all_match():
+    """Test filter_dict where all items match."""
+    data = {"a": 1, "b": 2, "c": 3}
+    result = data_utils.filter_dict(data, lambda k, v: v > 0)
+    assert result == data
+
+
+def test_transform_values_simple():
+    """Test basic transform_values functionality."""
+    data = {"a": 1, "b": 2, "c": 3}
+    result = data_utils.transform_values(data, lambda x: x * 2)
+    
+    expected = {"a": 2, "b": 4, "c": 6}
+    assert result == expected
+
+
+def test_transform_values_type_change():
+    """Test transform_values with type conversion."""
+    data = {"a": 1, "b": 2, "c": 3}
+    result = data_utils.transform_values(data, lambda x: str(x))
+    
+    expected = {"a": "1", "b": "2", "c": "3"}
+    assert result == expected
+
+
+def test_transform_values_complex():
+    """Test transform_values with complex transformation."""
+    data = {"name": "alice", "city": "new york", "country": "usa"}
+    result = data_utils.transform_values(data, lambda x: x.title())
+    
+    expected = {"name": "Alice", "city": "New York", "country": "Usa"}
+    assert result == expected
+
+
+def test_transform_values_empty():
+    """Test transform_values with empty dictionary."""
+    result = data_utils.transform_values({}, lambda x: x * 2)
+    assert result == {}
+
+
+def test_transform_values_nested():
+    """Test transform_values with nested data."""
+    data = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    result = data_utils.transform_values(data, lambda x: sum(x))
+    
+    expected = {"a": 6, "b": 15}
+    assert result == expected

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 
 _CAMEL_1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -132,3 +132,68 @@ def deep_diff(dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
         "modified": modified,
         "unchanged": unchanged
     }
+
+
+def group_by(items: list[Any], key_func: callable) -> dict[Any, list[Any]]:
+    """
+    Group items in a list by the result of a key function.
+    
+    Args:
+        items: List of items to group
+        key_func: Function that takes an item and returns a grouping key
+        
+    Returns:
+        Dictionary where keys are the grouping keys and values are lists of items
+        
+    Example:
+        >>> items = [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 25}, {"name": "Charlie", "age": 30}]
+        >>> group_by(items, lambda x: x["age"])
+        {25: [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 25}], 30: [{"name": "Charlie", "age": 30}]}
+    """
+    groups: dict[Any, list[Any]] = {}
+    
+    for item in items:
+        key = key_func(item)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(item)
+    
+    return groups
+
+
+def filter_dict(d: dict[str, Any], predicate: callable) -> dict[str, Any]:
+    """
+    Filter dictionary items based on a predicate function.
+    
+    Args:
+        d: Dictionary to filter
+        predicate: Function that takes (key, value) and returns True to keep the item
+        
+    Returns:
+        New dictionary containing only items that match the predicate
+        
+    Example:
+        >>> data = {"a": 1, "b": 2, "c": 3, "d": 4}
+        >>> filter_dict(data, lambda k, v: v > 2)
+        {"c": 3, "d": 4}
+    """
+    return {key: value for key, value in d.items() if predicate(key, value)}
+
+
+def transform_values(d: dict[str, Any], transformer: callable) -> dict[str, Any]:
+    """
+    Transform all values in a dictionary using a transformer function.
+    
+    Args:
+        d: Dictionary to transform
+        transformer: Function that takes a value and returns the transformed value
+        
+    Returns:
+        New dictionary with transformed values
+        
+    Example:
+        >>> data = {"a": 1, "b": 2, "c": 3}
+        >>> transform_values(data, lambda x: x * 2)
+        {"a": 2, "b": 4, "c": 6}
+    """
+    return {key: transformer(value) for key, value in d.items()}
