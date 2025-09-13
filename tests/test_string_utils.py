@@ -6,7 +6,11 @@ from dev_qol_toolkit.string_utils import (
     to_kebab_case,
     validate_email,
     validate_url,
-    sanitize_filename
+    sanitize_filename,
+    template_safe_substitute,
+    normalize_whitespace,
+    extract_urls,
+    truncate_text
 )
 
 
@@ -218,3 +222,108 @@ class TestSanitizationFunctions:
         filename_with_control = "file\x00\x01\x1fname.txt"
         result = sanitize_filename(filename_with_control)
         assert result == "filename.txt"
+
+
+class TestTextProcessingFunctions:
+    """Test text processing functions."""
+
+    def test_template_safe_substitute_basic(self):
+        """Test basic template substitution."""
+        assert template_safe_substitute("Hello $name!", name="World") == "Hello World!"
+        assert template_safe_substitute("$greeting $name", greeting="Hi", name="Alice") == "Hi Alice"
+        assert template_safe_substitute("No variables here") == "No variables here"
+
+    def test_template_safe_substitute_missing_vars(self):
+        """Test template substitution with missing variables."""
+        assert template_safe_substitute("Hello $name and $missing", name="Bob") == "Hello Bob and $missing"
+        assert template_safe_substitute("$missing1 and $missing2") == "$missing1 and $missing2"
+
+    def test_template_safe_substitute_braces(self):
+        """Test template substitution with braces."""
+        assert template_safe_substitute("Hello ${name}!", name="World") == "Hello World!"
+        assert template_safe_substitute("${greeting} ${name}", greeting="Hi", name="Alice") == "Hi Alice"
+
+    def test_template_safe_substitute_edge_cases(self):
+        """Test template substitution edge cases."""
+        assert template_safe_substitute("", name="test") == ""
+        assert template_safe_substitute(None) == "None"
+        assert template_safe_substitute(123) == "123"
+        assert template_safe_substitute("$invalid$syntax", name="test") == "$invalid$syntax"
+
+    def test_normalize_whitespace_basic(self):
+        """Test basic whitespace normalization."""
+        assert normalize_whitespace("  hello    world  ") == "hello world"
+        assert normalize_whitespace("normal text") == "normal text"
+        assert normalize_whitespace("") == ""
+
+    def test_normalize_whitespace_various_chars(self):
+        """Test normalization of various whitespace characters."""
+        assert normalize_whitespace("line1\n\n\nline2") == "line1 line2"
+        assert normalize_whitespace("tab\t\ttab") == "tab tab"
+        assert normalize_whitespace("mixed \t\n  spaces") == "mixed spaces"
+
+    def test_normalize_whitespace_edge_cases(self):
+        """Test whitespace normalization edge cases."""
+        assert normalize_whitespace("   ") == ""
+        assert normalize_whitespace("\n\t\r") == ""
+        assert normalize_whitespace(None) == "None"
+        assert normalize_whitespace(123) == "123"
+
+    def test_extract_urls_basic(self):
+        """Test basic URL extraction."""
+        text = "Visit https://example.com for more info"
+        assert extract_urls(text) == ["https://example.com"]
+        
+        text = "Check http://site1.com and https://site2.org"
+        assert extract_urls(text) == ["http://site1.com", "https://site2.org"]
+
+    def test_extract_urls_no_urls(self):
+        """Test URL extraction with no URLs."""
+        assert extract_urls("No URLs here") == []
+        assert extract_urls("") == []
+        assert extract_urls("Just some text with www.example.com") == []
+
+    def test_extract_urls_with_punctuation(self):
+        """Test URL extraction with trailing punctuation."""
+        text = "Visit https://example.com. Also check http://test.org!"
+        urls = extract_urls(text)
+        assert "https://example.com" in urls
+        assert "http://test.org" in urls
+        # Should not include punctuation
+        assert "https://example.com." not in urls
+        assert "http://test.org!" not in urls
+
+    def test_extract_urls_ftp(self):
+        """Test FTP URL extraction."""
+        text = "Download from ftp://files.example.com/file.txt"
+        assert extract_urls(text) == ["ftp://files.example.com/file.txt"]
+
+    def test_extract_urls_edge_cases(self):
+        """Test URL extraction edge cases."""
+        assert extract_urls(None) == []
+        assert extract_urls(123) == []
+        assert extract_urls([]) == []
+
+    def test_truncate_text_basic(self):
+        """Test basic text truncation."""
+        assert truncate_text("Hello World", 10) == "Hello W..."
+        assert truncate_text("Short", 10) == "Short"
+        assert truncate_text("Exactly10!", 10) == "Exactly10!"
+
+    def test_truncate_text_custom_suffix(self):
+        """Test text truncation with custom suffix."""
+        assert truncate_text("Long text here", 8, ">>") == "Long t>>"
+        assert truncate_text("Test", 8, ">>") == "Test"
+
+    def test_truncate_text_edge_cases(self):
+        """Test text truncation edge cases."""
+        assert truncate_text("", 5) == ""
+        assert truncate_text("Test", 0) == ""
+        assert truncate_text("Test", -1) == ""
+        assert truncate_text(None, 5) == "None"
+        assert truncate_text(123, 5) == "123"
+
+    def test_truncate_text_suffix_longer_than_max(self):
+        """Test truncation when suffix is longer than max_length."""
+        assert truncate_text("Long text", 3, "...") == "..."
+        assert truncate_text("Text", 2, ">>>>") == ">>"

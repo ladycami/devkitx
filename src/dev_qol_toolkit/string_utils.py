@@ -5,6 +5,7 @@ case conversions, validation, sanitization, and text processing utilities.
 """
 
 import re
+from string import Template
 from typing import Any
 
 __all__ = [
@@ -94,15 +95,33 @@ def to_kebab_case(text: str) -> str:
 def template_safe_substitute(template: str, **kwargs: Any) -> str:
     """Safely substitute variables in a template string.
     
+    Uses Python's string.Template for safe substitution. Missing variables are left as-is.
+    
     Args:
-        template: Template string with placeholders
+        template: Template string with $variable or ${variable} placeholders
         **kwargs: Variables to substitute
         
     Returns:
         Template with variables substituted
+        
+    Examples:
+        >>> template_safe_substitute("Hello $name!", name="World")
+        'Hello World!'
+        >>> template_safe_substitute("$greeting $name", greeting="Hi", name="Alice")
+        'Hi Alice'
+        >>> template_safe_substitute("Hello $name and $missing", name="Bob")
+        'Hello Bob and $missing'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 2.3")
+    if not isinstance(template, str):
+        return str(template)
+    
+    try:
+        tmpl = Template(template)
+        # Use safe_substitute to leave missing variables as-is
+        return tmpl.safe_substitute(**kwargs)
+    except (ValueError, KeyError):
+        # If template is malformed, return original
+        return template
 
 
 def validate_email(email: str) -> bool:
@@ -265,31 +284,76 @@ def sanitize_filename(filename: str) -> str:
 def normalize_whitespace(text: str) -> str:
     """Normalize whitespace in text.
     
+    Replaces multiple consecutive whitespace characters with single spaces,
+    and strips leading/trailing whitespace.
+    
     Args:
         text: Text to normalize
         
     Returns:
         Text with normalized whitespace
+        
+    Examples:
+        >>> normalize_whitespace("  hello    world  ")
+        'hello world'
+        >>> normalize_whitespace("line1\\n\\n\\nline2")
+        'line1 line2'
+        >>> normalize_whitespace("tab\\t\\ttab")
+        'tab tab'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 2.3")
+    if not isinstance(text, str):
+        return str(text)
+    
+    # Replace all whitespace sequences with single spaces
+    normalized = re.sub(r'\s+', ' ', text)
+    
+    # Strip leading and trailing whitespace
+    return normalized.strip()
 
 
 def extract_urls(text: str) -> list[str]:
     """Extract URLs from text.
+    
+    Finds URLs with common schemes (http, https, ftp, ftps) in the given text.
     
     Args:
         text: Text to extract URLs from
         
     Returns:
         List of URLs found in text
+        
+    Examples:
+        >>> extract_urls("Visit https://example.com for more info")
+        ['https://example.com']
+        >>> extract_urls("Check http://site1.com and https://site2.org")
+        ['http://site1.com', 'https://site2.org']
+        >>> extract_urls("No URLs here")
+        []
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 2.3")
+    if not isinstance(text, str):
+        return []
+    
+    # URL pattern for common schemes
+    url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+|ftp://[^\s<>"{}|\\^`\[\]]+'
+    
+    urls = re.findall(url_pattern, text, re.IGNORECASE)
+    
+    # Filter out URLs that end with punctuation that's likely not part of the URL
+    cleaned_urls = []
+    for url in urls:
+        # Remove trailing punctuation that's commonly not part of URLs
+        url = re.sub(r'[.,;:!?)\]}>"\']$', '', url)
+        if url:
+            cleaned_urls.append(url)
+    
+    return cleaned_urls
 
 
 def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
     """Truncate text to maximum length with suffix.
+    
+    If text is longer than max_length, truncates it and adds suffix.
+    The total length including suffix will not exceed max_length.
     
     Args:
         text: Text to truncate
@@ -298,6 +362,26 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
         
     Returns:
         Truncated text with suffix if needed
+        
+    Examples:
+        >>> truncate_text("Hello World", 10)
+        'Hello W...'
+        >>> truncate_text("Short", 10)
+        'Short'
+        >>> truncate_text("Long text here", 8, ">>")
+        'Long t>>'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 2.3")
+    if not isinstance(text, str):
+        text = str(text)
+    
+    if max_length <= 0:
+        return ""
+    
+    if len(text) <= max_length:
+        return text
+    
+    if len(suffix) >= max_length:
+        return suffix[:max_length]
+    
+    truncate_at = max_length - len(suffix)
+    return text[:truncate_at] + suffix
