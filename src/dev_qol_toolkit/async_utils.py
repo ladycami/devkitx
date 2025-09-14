@@ -4,6 +4,9 @@ This module provides utilities for bridging sync/async code and
 async-compatible versions of common operations.
 """
 
+import asyncio
+import functools
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Awaitable, Callable, TypeVar
 
@@ -18,30 +21,69 @@ __all__ = [
 ]
 
 
-def sync_to_async(func: Callable[..., T]) -> Callable[..., T]:
+def sync_to_async(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
     """Convert synchronous function to async.
+    
+    This function wraps a synchronous function to run in a thread pool,
+    making it awaitable without blocking the event loop.
     
     Args:
         func: Synchronous function to convert
         
     Returns:
         Async version of the function
+        
+    Example:
+        >>> def slow_sync_function(x: int) -> int:
+        ...     time.sleep(1)
+        ...     return x * 2
+        >>> async_func = sync_to_async(slow_sync_function)
+        >>> result = await async_func(5)  # Returns 10 without blocking
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 7.1")
+    @functools.wraps(func)
+    async def async_wrapper(*args: Any, **kwargs: Any) -> T:
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            return await loop.run_in_executor(executor, functools.partial(func, *args, **kwargs))
+    
+    return async_wrapper
 
 
 def async_to_sync(func: Callable[..., Awaitable[T]]) -> Callable[..., T]:
     """Convert asynchronous function to sync.
+    
+    This function wraps an async function to run synchronously by
+    creating or using an existing event loop.
     
     Args:
         func: Asynchronous function to convert
         
     Returns:
         Sync version of the function
+        
+    Example:
+        >>> async def async_function(x: int) -> int:
+        ...     await asyncio.sleep(0.1)
+        ...     return x * 2
+        >>> sync_func = async_to_sync(async_function)
+        >>> result = sync_func(5)  # Returns 10, blocks until complete
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 7.1")
+    @functools.wraps(func)
+    def sync_wrapper(*args: Any, **kwargs: Any) -> T:
+        try:
+            # Try to get the current event loop
+            loop = asyncio.get_running_loop()
+            # If we're already in an async context, we can't use asyncio.run()
+            # Instead, we need to schedule the coroutine
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, func(*args, **kwargs))
+                return future.result()
+        except RuntimeError:
+            # No event loop running, we can use asyncio.run()
+            return asyncio.run(func(*args, **kwargs))
+    
+    return sync_wrapper
 
 
 async def gather_with_limit(limit: int, *awaitables: Awaitable[T]) -> list[T]:
