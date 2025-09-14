@@ -6,6 +6,7 @@ async-compatible versions of common operations.
 
 import asyncio
 import functools
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Awaitable, Callable, TypeVar
@@ -120,36 +121,235 @@ async def retry_async(
 
 
 class AsyncFileManager:
-    """Async file operations manager."""
+    """Async file operations manager.
     
-    async def read_text(self, path: str | Path) -> str:
+    Provides async versions of common file operations that don't block
+    the event loop by running in a thread pool.
+    
+    Example:
+        >>> async_fm = AsyncFileManager()
+        >>> content = await async_fm.read_text("example.txt")
+        >>> await async_fm.write_text("output.txt", "Hello, World!")
+        >>> await async_fm.copy_file("source.txt", "destination.txt")
+    """
+    
+    def __init__(self, encoding: str = "utf-8"):
+        """Initialize AsyncFileManager.
+        
+        Args:
+            encoding: Default text encoding for file operations
+        """
+        self.encoding = encoding
+    
+    async def read_text(self, path: str | Path, encoding: str | None = None) -> str:
         """Read text file asynchronously.
         
         Args:
             path: Path to file
+            encoding: Text encoding (defaults to instance encoding)
             
         Returns:
             File contents as string
+            
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            PermissionError: If lacking read permissions
+            UnicodeDecodeError: If file can't be decoded with specified encoding
         """
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 7.2")
+        path_obj = Path(path)
+        encoding = encoding or self.encoding
+        
+        def _read_sync() -> str:
+            return path_obj.read_text(encoding=encoding)
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            return await loop.run_in_executor(executor, _read_sync)
     
-    async def write_text(self, path: str | Path, content: str) -> None:
+    async def write_text(
+        self, 
+        path: str | Path, 
+        content: str, 
+        encoding: str | None = None,
+        create_parents: bool = True
+    ) -> None:
         """Write text file asynchronously.
         
         Args:
             path: Path to file
             content: Content to write
+            encoding: Text encoding (defaults to instance encoding)
+            create_parents: Whether to create parent directories if they don't exist
+            
+        Raises:
+            PermissionError: If lacking write permissions
+            OSError: If unable to create parent directories
         """
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 7.2")
+        path_obj = Path(path)
+        encoding = encoding or self.encoding
+        
+        def _write_sync() -> None:
+            if create_parents:
+                path_obj.parent.mkdir(parents=True, exist_ok=True)
+            path_obj.write_text(content, encoding=encoding)
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, _write_sync)
     
-    async def copy_file(self, src: str | Path, dst: str | Path) -> None:
+    async def copy_file(self, src: str | Path, dst: str | Path, create_parents: bool = True) -> None:
         """Copy file asynchronously.
         
         Args:
             src: Source file path
             dst: Destination file path
+            create_parents: Whether to create parent directories if they don't exist
+            
+        Raises:
+            FileNotFoundError: If source file doesn't exist
+            PermissionError: If lacking read/write permissions
+            OSError: If unable to create parent directories
         """
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 7.2")
+        src_path = Path(src)
+        dst_path = Path(dst)
+        
+        def _copy_sync() -> None:
+            if create_parents:
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src_path, dst_path)
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, _copy_sync)
+    
+    async def read_bytes(self, path: str | Path) -> bytes:
+        """Read binary file asynchronously.
+        
+        Args:
+            path: Path to file
+            
+        Returns:
+            File contents as bytes
+            
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            PermissionError: If lacking read permissions
+        """
+        path_obj = Path(path)
+        
+        def _read_sync() -> bytes:
+            return path_obj.read_bytes()
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            return await loop.run_in_executor(executor, _read_sync)
+    
+    async def write_bytes(
+        self, 
+        path: str | Path, 
+        content: bytes, 
+        create_parents: bool = True
+    ) -> None:
+        """Write binary file asynchronously.
+        
+        Args:
+            path: Path to file
+            content: Content to write as bytes
+            create_parents: Whether to create parent directories if they don't exist
+            
+        Raises:
+            PermissionError: If lacking write permissions
+            OSError: If unable to create parent directories
+        """
+        path_obj = Path(path)
+        
+        def _write_sync() -> None:
+            if create_parents:
+                path_obj.parent.mkdir(parents=True, exist_ok=True)
+            path_obj.write_bytes(content)
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, _write_sync)
+    
+    async def exists(self, path: str | Path) -> bool:
+        """Check if file exists asynchronously.
+        
+        Args:
+            path: Path to check
+            
+        Returns:
+            True if file exists, False otherwise
+        """
+        path_obj = Path(path)
+        
+        def _exists_sync() -> bool:
+            return path_obj.exists()
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            return await loop.run_in_executor(executor, _exists_sync)
+    
+    async def mkdir(self, path: str | Path, parents: bool = True, exist_ok: bool = True) -> None:
+        """Create directory asynchronously.
+        
+        Args:
+            path: Directory path to create
+            parents: Whether to create parent directories
+            exist_ok: Whether to ignore if directory already exists
+            
+        Raises:
+            FileExistsError: If directory exists and exist_ok is False
+            PermissionError: If lacking permissions to create directory
+        """
+        path_obj = Path(path)
+        
+        def _mkdir_sync() -> None:
+            path_obj.mkdir(parents=parents, exist_ok=exist_ok)
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, _mkdir_sync)
+    
+    async def remove(self, path: str | Path) -> None:
+        """Remove file asynchronously.
+        
+        Args:
+            path: Path to file to remove
+            
+        Raises:
+            FileNotFoundError: If file doesn't exist
+            PermissionError: If lacking permissions to remove file
+            IsADirectoryError: If path is a directory
+        """
+        path_obj = Path(path)
+        
+        def _remove_sync() -> None:
+            path_obj.unlink()
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, _remove_sync)
+    
+    async def list_dir(self, path: str | Path) -> list[Path]:
+        """List directory contents asynchronously.
+        
+        Args:
+            path: Directory path to list
+            
+        Returns:
+            List of Path objects for directory contents
+            
+        Raises:
+            FileNotFoundError: If directory doesn't exist
+            NotADirectoryError: If path is not a directory
+            PermissionError: If lacking permissions to read directory
+        """
+        path_obj = Path(path)
+        
+        def _list_sync() -> list[Path]:
+            return list(path_obj.iterdir())
+        
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            return await loop.run_in_executor(executor, _list_sync)

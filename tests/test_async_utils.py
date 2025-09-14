@@ -1,12 +1,14 @@
 """Tests for async_utils module."""
 
 import asyncio
+import tempfile
 import time
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from dev_qol_toolkit.async_utils import async_to_sync, sync_to_async
+from dev_qol_toolkit.async_utils import AsyncFileManager, async_to_sync, sync_to_async
 
 
 class TestAsyncBridgeFunctions:
@@ -211,3 +213,267 @@ class TestAsyncUtilsIntegration:
         result, processed = asyncio.run(async_workflow())
         assert result == "Saved 5 items"
         assert processed == [2, 4, 6, 8, 10]
+
+
+class TestAsyncFileManager:
+    """Test AsyncFileManager class."""
+
+    @pytest.fixture
+    def temp_dir(self):
+        """Create a temporary directory for testing."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yield Path(temp_dir)
+
+    @pytest.fixture
+    def async_fm(self):
+        """Create AsyncFileManager instance."""
+        return AsyncFileManager()
+
+    def test_init_default_encoding(self):
+        """Test AsyncFileManager initialization with default encoding."""
+        fm = AsyncFileManager()
+        assert fm.encoding == "utf-8"
+
+    def test_init_custom_encoding(self):
+        """Test AsyncFileManager initialization with custom encoding."""
+        fm = AsyncFileManager(encoding="latin-1")
+        assert fm.encoding == "latin-1"
+
+    def test_read_write_text_basic(self, async_fm, temp_dir):
+        """Test basic text read/write operations."""
+        test_file = temp_dir / "test.txt"
+        test_content = "Hello, async world!"
+
+        async def test_async():
+            await async_fm.write_text(test_file, test_content)
+            content = await async_fm.read_text(test_file)
+            assert content == test_content
+
+        asyncio.run(test_async())
+
+    def test_read_write_text_with_encoding(self, temp_dir):
+        """Test text operations with custom encoding."""
+        fm = AsyncFileManager(encoding="latin-1")
+        test_file = temp_dir / "test_encoding.txt"
+        test_content = "Héllo, wörld!"
+
+        async def test_async():
+            await fm.write_text(test_file, test_content)
+            content = await fm.read_text(test_file)
+            assert content == test_content
+
+        asyncio.run(test_async())
+
+    def test_write_text_creates_parents(self, async_fm, temp_dir):
+        """Test that write_text creates parent directories."""
+        nested_file = temp_dir / "nested" / "deep" / "test.txt"
+        test_content = "Nested file content"
+
+        async def test_async():
+            await async_fm.write_text(nested_file, test_content, create_parents=True)
+            assert nested_file.exists()
+            content = await async_fm.read_text(nested_file)
+            assert content == test_content
+
+        asyncio.run(test_async())
+
+    def test_write_text_no_create_parents(self, async_fm, temp_dir):
+        """Test write_text with create_parents=False."""
+        nested_file = temp_dir / "nonexistent" / "test.txt"
+        test_content = "Should fail"
+
+        async def test_async():
+            with pytest.raises(FileNotFoundError):
+                await async_fm.write_text(nested_file, test_content, create_parents=False)
+
+        asyncio.run(test_async())
+
+    def test_read_write_bytes(self, async_fm, temp_dir):
+        """Test binary read/write operations."""
+        test_file = temp_dir / "test.bin"
+        test_content = b"Binary content \x00\x01\x02"
+
+        async def test_async():
+            await async_fm.write_bytes(test_file, test_content)
+            content = await async_fm.read_bytes(test_file)
+            assert content == test_content
+
+        asyncio.run(test_async())
+
+    def test_copy_file(self, async_fm, temp_dir):
+        """Test file copying."""
+        source_file = temp_dir / "source.txt"
+        dest_file = temp_dir / "destination.txt"
+        test_content = "Content to copy"
+
+        async def test_async():
+            await async_fm.write_text(source_file, test_content)
+            await async_fm.copy_file(source_file, dest_file)
+            
+            source_content = await async_fm.read_text(source_file)
+            dest_content = await async_fm.read_text(dest_file)
+            
+            assert source_content == dest_content == test_content
+
+        asyncio.run(test_async())
+
+    def test_copy_file_creates_parents(self, async_fm, temp_dir):
+        """Test that copy_file creates parent directories."""
+        source_file = temp_dir / "source.txt"
+        dest_file = temp_dir / "nested" / "deep" / "destination.txt"
+        test_content = "Content to copy"
+
+        async def test_async():
+            await async_fm.write_text(source_file, test_content)
+            await async_fm.copy_file(source_file, dest_file, create_parents=True)
+            
+            dest_content = await async_fm.read_text(dest_file)
+            assert dest_content == test_content
+
+        asyncio.run(test_async())
+
+    def test_exists(self, async_fm, temp_dir):
+        """Test file existence checking."""
+        existing_file = temp_dir / "exists.txt"
+        nonexistent_file = temp_dir / "does_not_exist.txt"
+
+        async def test_async():
+            await async_fm.write_text(existing_file, "I exist")
+            
+            assert await async_fm.exists(existing_file) is True
+            assert await async_fm.exists(nonexistent_file) is False
+
+        asyncio.run(test_async())
+
+    def test_mkdir(self, async_fm, temp_dir):
+        """Test directory creation."""
+        new_dir = temp_dir / "new_directory"
+        nested_dir = temp_dir / "nested" / "deep" / "directory"
+
+        async def test_async():
+            await async_fm.mkdir(new_dir)
+            assert new_dir.is_dir()
+            
+            await async_fm.mkdir(nested_dir, parents=True)
+            assert nested_dir.is_dir()
+
+        asyncio.run(test_async())
+
+    def test_mkdir_exist_ok(self, async_fm, temp_dir):
+        """Test mkdir with exist_ok parameter."""
+        new_dir = temp_dir / "test_dir"
+
+        async def test_async():
+            await async_fm.mkdir(new_dir)
+            
+            # Should not raise with exist_ok=True (default)
+            await async_fm.mkdir(new_dir, exist_ok=True)
+            
+            # Should raise with exist_ok=False
+            with pytest.raises(FileExistsError):
+                await async_fm.mkdir(new_dir, exist_ok=False)
+
+        asyncio.run(test_async())
+
+    def test_remove(self, async_fm, temp_dir):
+        """Test file removal."""
+        test_file = temp_dir / "to_remove.txt"
+
+        async def test_async():
+            await async_fm.write_text(test_file, "Remove me")
+            assert await async_fm.exists(test_file)
+            
+            await async_fm.remove(test_file)
+            assert not await async_fm.exists(test_file)
+
+        asyncio.run(test_async())
+
+    def test_remove_nonexistent(self, async_fm, temp_dir):
+        """Test removing nonexistent file raises error."""
+        nonexistent_file = temp_dir / "does_not_exist.txt"
+
+        async def test_async():
+            with pytest.raises(FileNotFoundError):
+                await async_fm.remove(nonexistent_file)
+
+        asyncio.run(test_async())
+
+    def test_list_dir(self, async_fm, temp_dir):
+        """Test directory listing."""
+        # Create some test files
+        files = ["file1.txt", "file2.txt", "file3.txt"]
+
+        async def test_async():
+            for filename in files:
+                await async_fm.write_text(temp_dir / filename, f"Content of {filename}")
+            
+            contents = await async_fm.list_dir(temp_dir)
+            content_names = {path.name for path in contents}
+            
+            assert len(contents) >= len(files)  # May have other files
+            for filename in files:
+                assert filename in content_names
+
+        asyncio.run(test_async())
+
+    def test_list_dir_nonexistent(self, async_fm, temp_dir):
+        """Test listing nonexistent directory raises error."""
+        nonexistent_dir = temp_dir / "does_not_exist"
+
+        async def test_async():
+            with pytest.raises(FileNotFoundError):
+                await async_fm.list_dir(nonexistent_dir)
+
+        asyncio.run(test_async())
+
+    def test_concurrent_operations(self, async_fm, temp_dir):
+        """Test that multiple async operations can run concurrently."""
+        files = [temp_dir / f"concurrent_{i}.txt" for i in range(5)]
+        
+        async def test_async():
+            # Start multiple write operations concurrently
+            write_tasks = [
+                async_fm.write_text(file_path, f"Content {i}")
+                for i, file_path in enumerate(files)
+            ]
+            
+            start_time = time.time()
+            await asyncio.gather(*write_tasks)
+            write_time = time.time() - start_time
+            
+            # Read all files concurrently
+            read_tasks = [async_fm.read_text(file_path) for file_path in files]
+            
+            start_time = time.time()
+            contents = await asyncio.gather(*read_tasks)
+            read_time = time.time() - start_time
+            
+            # Verify contents
+            for i, content in enumerate(contents):
+                assert content == f"Content {i}"
+            
+            # Operations should be reasonably fast (concurrent, not sequential)
+            assert write_time < 1.0  # Should be much faster than 5 seconds
+            assert read_time < 1.0
+
+        asyncio.run(test_async())
+
+    def test_error_handling(self, async_fm, temp_dir):
+        """Test error handling in async operations."""
+        async def test_async():
+            # Test reading nonexistent file
+            with pytest.raises(FileNotFoundError):
+                await async_fm.read_text(temp_dir / "nonexistent.txt")
+            
+            # Test reading bytes from nonexistent file
+            with pytest.raises(FileNotFoundError):
+                await async_fm.read_bytes(temp_dir / "nonexistent.bin")
+            
+            # Test copying nonexistent file
+            with pytest.raises(FileNotFoundError):
+                await async_fm.copy_file(
+                    temp_dir / "nonexistent.txt",
+                    temp_dir / "destination.txt"
+                )
+
+        asyncio.run(test_async())
