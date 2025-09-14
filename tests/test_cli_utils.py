@@ -1,5 +1,6 @@
 """Tests for cli_utils module."""
 
+import time
 import pytest
 from unittest.mock import patch, MagicMock
 from dev_qol_toolkit.cli_utils import (
@@ -8,6 +9,10 @@ from dev_qol_toolkit.cli_utils import (
     select,
     password_prompt,
     multi_select,
+    progress_bar,
+    spinner,
+    colored_text,
+    table_format,
 )
 
 
@@ -199,3 +204,113 @@ class TestMultiSelect:
         """Test multi_select with empty options list."""
         with pytest.raises(ValueError, match="options must not be empty"):
             multi_select([])
+
+
+class TestProgressBar:
+    """Test progress_bar function."""
+    
+    def test_progress_bar_with_list(self):
+        """Test progress bar with a list."""
+        items = [1, 2, 3, 4, 5]
+        result = list(progress_bar(items, "Testing"))
+        assert result == items
+    
+    def test_progress_bar_with_generator(self):
+        """Test progress bar with a generator."""
+        def gen():
+            for i in range(3):
+                yield i
+        
+        result = list(progress_bar(gen(), "Testing", total=3))
+        assert result == [0, 1, 2]
+    
+    def test_progress_bar_empty_desc(self):
+        """Test progress bar with empty description."""
+        items = [1, 2]
+        result = list(progress_bar(items))
+        assert result == items
+
+
+class TestSpinner:
+    """Test spinner context manager."""
+    
+    def test_spinner_basic(self):
+        """Test basic spinner functionality."""
+        with spinner("Testing..."):
+            time.sleep(0.1)  # Brief pause to let spinner run
+        # If we get here without exception, spinner worked
+        assert True
+    
+    def test_spinner_with_exception(self):
+        """Test spinner handles exceptions properly."""
+        with pytest.raises(ValueError):
+            with spinner("Testing..."):
+                raise ValueError("Test error")
+
+
+class TestColoredText:
+    """Test colored_text function."""
+    
+    def test_colored_text_basic(self):
+        """Test basic colored text."""
+        result = colored_text("Hello", "red")
+        assert "Hello" in result
+        # Result should contain ANSI escape codes for color or be at least the original text
+        assert len(result) >= len("Hello")
+    
+    def test_colored_text_bold(self):
+        """Test bold colored text."""
+        result = colored_text("Bold", "green", bold=True)
+        assert "Bold" in result
+        assert len(result) >= len("Bold")
+    
+    def test_colored_text_different_colors(self):
+        """Test different color options."""
+        colors = ["red", "green", "blue", "yellow", "magenta", "cyan"]
+        for color in colors:
+            result = colored_text("Test", color)
+            assert "Test" in result
+
+
+class TestTableFormat:
+    """Test table_format function."""
+    
+    def test_table_format_basic(self):
+        """Test basic table formatting."""
+        data = [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob", "age": 25}
+        ]
+        result = table_format(data)
+        assert "Alice" in result
+        assert "Bob" in result
+        assert "30" in result
+        assert "25" in result
+    
+    def test_table_format_with_headers(self):
+        """Test table formatting with custom headers."""
+        data = [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob", "age": 25}
+        ]
+        headers = ["Name", "Age"]
+        result = table_format(data, headers)
+        assert "Name" in result
+        assert "Age" in result
+        assert "Alice" in result
+    
+    def test_table_format_empty_data(self):
+        """Test table formatting with empty data."""
+        result = table_format([])
+        assert result == ""
+    
+    def test_table_format_missing_keys(self):
+        """Test table formatting with missing keys in some rows."""
+        data = [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob"}  # Missing age
+        ]
+        result = table_format(data)
+        assert "Alice" in result
+        assert "Bob" in result
+        # Should handle missing values gracefully
