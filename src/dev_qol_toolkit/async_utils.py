@@ -90,34 +90,113 @@ def async_to_sync(func: Callable[..., Awaitable[T]]) -> Callable[..., T]:
 async def gather_with_limit(limit: int, *awaitables: Awaitable[T]) -> list[T]:
     """Gather awaitables with concurrency limit.
     
+    Executes multiple awaitable objects concurrently but limits the number
+    of concurrent operations to prevent overwhelming the system.
+    
     Args:
         limit: Maximum number of concurrent operations
         *awaitables: Awaitable objects to gather
         
     Returns:
-        List of results
+        List of results in the same order as input awaitables
+        
+    Raises:
+        ValueError: If limit is less than 1
+        
+    Example:
+        >>> async def fetch_data(url: str) -> str:
+        ...     # Simulate API call
+        ...     await asyncio.sleep(0.1)
+        ...     return f"Data from {url}"
+        >>> 
+        >>> urls = [f"http://api.example.com/{i}" for i in range(10)]
+        >>> tasks = [fetch_data(url) for url in urls]
+        >>> results = await gather_with_limit(3, *tasks)  # Max 3 concurrent
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 7.3")
+    if limit < 1:
+        raise ValueError("Limit must be at least 1")
+    
+    if not awaitables:
+        return []
+    
+    # Use asyncio.Semaphore to limit concurrency
+    semaphore = asyncio.Semaphore(limit)
+    
+    async def _limited_awaitable(awaitable: Awaitable[T]) -> T:
+        async with semaphore:
+            return await awaitable
+    
+    # Wrap all awaitables with semaphore
+    limited_awaitables = [_limited_awaitable(awaitable) for awaitable in awaitables]
+    
+    # Gather all results
+    return await asyncio.gather(*limited_awaitables)
 
 
 async def retry_async(
     func: Callable[..., Awaitable[T]], 
     retries: int = 3, 
-    delay: float = 1.0
+    delay: float = 1.0,
+    backoff_factor: float = 2.0,
+    exceptions: tuple[type[Exception], ...] = (Exception,),
+    *args: Any,
+    **kwargs: Any
 ) -> T:
     """Retry async function with exponential backoff.
     
+    Attempts to execute an async function multiple times with increasing
+    delays between attempts if it fails.
+    
     Args:
         func: Async function to retry
-        retries: Number of retry attempts
-        delay: Initial delay between retries
+        retries: Number of retry attempts (not including initial attempt)
+        delay: Initial delay between retries in seconds
+        backoff_factor: Multiplier for delay after each failed attempt
+        exceptions: Tuple of exception types to catch and retry on
+        *args: Arguments to pass to the function
+        **kwargs: Keyword arguments to pass to the function
         
     Returns:
         Function result
+        
+    Raises:
+        The last exception raised by the function if all retries are exhausted
+        
+    Example:
+        >>> async def unreliable_api_call(data: str) -> str:
+        ...     if random.random() < 0.7:  # 70% chance of failure
+        ...         raise ConnectionError("API temporarily unavailable")
+        ...     return f"Success: {data}"
+        >>> 
+        >>> result = await retry_async(
+        ...     unreliable_api_call,
+        ...     retries=3,
+        ...     delay=0.5,
+        ...     exceptions=(ConnectionError,),
+        ...     "test_data"
+        ... )
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 7.3")
+    last_exception = None
+    current_delay = delay
+    
+    for attempt in range(retries + 1):  # +1 for initial attempt
+        try:
+            return await func(*args, **kwargs)
+        except exceptions as e:
+            last_exception = e
+            if attempt == retries:  # Last attempt failed
+                break
+            
+            # Wait before retrying
+            await asyncio.sleep(current_delay)
+            current_delay *= backoff_factor
+    
+    # All attempts failed, raise the last exception
+    if last_exception:
+        raise last_exception
+    else:
+        # This shouldn't happen, but just in case
+        raise RuntimeError("All retry attempts failed")
 
 
 class AsyncFileManager:

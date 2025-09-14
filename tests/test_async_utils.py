@@ -8,7 +8,13 @@ from unittest.mock import patch
 
 import pytest
 
-from dev_qol_toolkit.async_utils import AsyncFileManager, async_to_sync, sync_to_async
+from dev_qol_toolkit.async_utils import (
+    AsyncFileManager, 
+    async_to_sync, 
+    sync_to_async,
+    gather_with_limit,
+    retry_async
+)
 
 
 class TestAsyncBridgeFunctions:
@@ -475,5 +481,238 @@ class TestAsyncFileManager:
                     temp_dir / "nonexistent.txt",
                     temp_dir / "destination.txt"
                 )
+
+        asyncio.run(test_async())
+
+class TestAsyncUtilityFunctions:
+    """Test async utility functions."""
+
+    def test_gather_with_limit_basic(self):
+        """Test basic gather_with_limit functionality."""
+        async def slow_task(value: int, delay: float = 0.01) -> int:
+            await asyncio.sleep(delay)
+            return value * 2
+
+        async def test_async():
+            tasks = [slow_task(i) for i in range(5)]
+            results = await gather_with_limit(3, *tasks)
+            assert results == [0, 2, 4, 6, 8]
+
+        asyncio.run(test_async())
+
+    def test_gather_with_limit_empty(self):
+        """Test gather_with_limit with empty input."""
+        async def test_async():
+            results = await gather_with_limit(3)
+            assert results == []
+
+        asyncio.run(test_async())
+
+    def test_gather_with_limit_invalid_limit(self):
+        """Test gather_with_limit with invalid limit."""
+        async def dummy_task():
+            return 1
+
+        async def test_async():
+            with pytest.raises(ValueError, match="Limit must be at least 1"):
+                await gather_with_limit(0, dummy_task())
+
+        asyncio.run(test_async())
+
+    def test_gather_with_limit_concurrency(self):
+        """Test that gather_with_limit actually limits concurrency."""
+        concurrent_count = 0
+        max_concurrent = 0
+
+        async def monitored_task(task_id: int) -> int:
+            nonlocal concurrent_count, max_concurrent
+            concurrent_count += 1
+            max_concurrent = max(max_concurrent, concurrent_count)
+            
+            await asyncio.sleep(0.05)  # Simulate work
+            
+            concurrent_count -= 1
+            return task_id
+
+        async def test_async():
+            nonlocal max_concurrent
+            max_concurrent = 0
+            
+            tasks = [monitored_task(i) for i in range(10)]
+            results = await gather_with_limit(3, *tasks)
+            
+            assert results == list(range(10))
+            assert max_concurrent <= 3  # Should never exceed limit
+
+        asyncio.run(test_async())
+
+    def test_gather_with_limit_exception_handling(self):
+        """Test gather_with_limit handles exceptions properly."""
+        async def failing_task(should_fail: bool) -> str:
+            await asyncio.sleep(0.01)
+            if should_fail:
+                raise ValueError("Task failed")
+            return "success"
+
+        async def test_async():
+            tasks = [
+                failing_task(False),
+                failing_task(True),
+                failing_task(False),
+            ]
+            
+            with pytest.raises(ValueError, match="Task failed"):
+                await gather_with_limit(2, *tasks)
+
+        asyncio.run(test_async())
+
+    def test_retry_async_success_first_try(self):
+        """Test retry_async when function succeeds on first try."""
+        call_count = 0
+
+        async def successful_func(value: int) -> int:
+            nonlocal call_count
+            call_count += 1
+            return value * 2
+
+        async def test_async():
+            nonlocal call_count
+            call_count = 0
+            
+            result = await retry_async(successful_func, retries=3, delay=0.01, value=5)
+            assert result == 10
+            assert call_count == 1
+
+        asyncio.run(test_async())
+
+    def test_retry_async_success_after_retries(self):
+        """Test retry_async when function succeeds after some failures."""
+        call_count = 0
+
+        async def eventually_successful_func(value: int) -> int:
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise ConnectionError("Temporary failure")
+            return value * 2
+
+        async def test_async():
+            nonlocal call_count
+            call_count = 0
+            
+            result = await retry_async(
+                eventually_successful_func,
+                retries=3, 
+                delay=0.01,
+                exceptions=(ConnectionError,),
+                value=5
+            )
+            assert result == 10
+            assert call_count == 3
+
+        asyncio.run(test_async())
+
+    def test_retry_async_all_attempts_fail(self):
+        """Test retry_async when all attempts fail."""
+        call_count = 0
+
+        async def always_failing_func() -> str:
+            nonlocal call_count
+            call_count += 1
+            raise ValueError("Always fails")
+
+        async def test_async():
+            nonlocal call_count
+            call_count = 0
+            
+            with pytest.raises(ValueError, match="Always fails"):
+                await retry_async(
+                    always_failing_func,
+                    retries=2,
+                    delay=0.01,
+                    exceptions=(ValueError,)
+                )
+            
+            assert call_count == 3  # Initial + 2 retries
+
+        asyncio.run(test_async())
+
+    def test_retry_async_specific_exceptions(self):
+        """Test retry_async only retries on specific exceptions."""
+        call_count = 0
+
+        async def mixed_failure_func() -> str:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise ConnectionError("Retryable error")
+            else:
+                raise ValueError("Non-retryable error")
+
+        async def test_async():
+            nonlocal call_count
+            call_count = 0
+            
+            # Should not retry ValueError
+            with pytest.raises(ValueError, match="Non-retryable error"):
+                await retry_async(
+                    mixed_failure_func,
+                    retries=3,
+                    delay=0.01,
+                    exceptions=(ConnectionError,)
+                )
+            
+            assert call_count == 2  # First call raises ConnectionError (retried), second raises ValueError (not retried)
+
+        asyncio.run(test_async())
+
+    def test_retry_async_backoff_factor(self):
+        """Test retry_async backoff factor."""
+        call_times = []
+
+        async def timing_func() -> str:
+            call_times.append(time.time())
+            raise ConnectionError("Always fails")
+
+        async def test_async():
+            nonlocal call_times
+            call_times = []
+            
+            with pytest.raises(ConnectionError):
+                await retry_async(
+                    timing_func,
+                    retries=2,
+                    delay=0.1,
+                    backoff_factor=2.0,
+                    exceptions=(ConnectionError,)
+                )
+            
+            assert len(call_times) == 3  # Initial + 2 retries
+            
+            # Check that delays are approximately correct (with some tolerance)
+            if len(call_times) >= 2:
+                delay1 = call_times[1] - call_times[0]
+                assert 0.08 <= delay1 <= 0.15  # ~0.1 seconds
+            
+            if len(call_times) >= 3:
+                delay2 = call_times[2] - call_times[1]
+                assert 0.18 <= delay2 <= 0.25  # ~0.2 seconds (2x backoff)
+
+        asyncio.run(test_async())
+
+    def test_retry_async_with_kwargs(self):
+        """Test retry_async with function arguments."""
+        async def func_with_args(a: int, b: int, multiplier: int = 1) -> int:
+            return (a + b) * multiplier
+
+        async def test_async():
+            result = await retry_async(
+                func_with_args,
+                retries=1,
+                delay=0.01,
+                a=3, b=4,
+                multiplier=2
+            )
+            assert result == 14
 
         asyncio.run(test_async())
