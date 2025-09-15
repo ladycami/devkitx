@@ -4,6 +4,9 @@ This module provides utilities for profiling, debugging, testing,
 and development workflow enhancement.
 """
 
+import functools
+import time
+import tracemalloc
 from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
@@ -26,9 +29,28 @@ def time_function(func: Callable[..., T]) -> Callable[..., T]:
         
     Returns:
         Decorated function that prints execution time
+        
+    Example:
+        >>> @time_function
+        ... def slow_function():
+        ...     time.sleep(0.1)
+        ...     return "done"
+        >>> result = slow_function()  # Prints: slow_function took 0.1001s
+        >>> result
+        'done'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 8.1")
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> T:
+        start_time = time.perf_counter()
+        try:
+            result = func(*args, **kwargs)
+            return result
+        finally:
+            end_time = time.perf_counter()
+            execution_time = end_time - start_time
+            print(f"{func.__name__} took {execution_time:.4f}s")
+    
+    return wrapper
 
 
 def profile_memory(func: Callable[..., T]) -> Callable[..., T]:
@@ -39,9 +61,36 @@ def profile_memory(func: Callable[..., T]) -> Callable[..., T]:
         
     Returns:
         Decorated function that prints memory usage
+        
+    Example:
+        >>> @profile_memory
+        ... def memory_intensive():
+        ...     data = [i for i in range(10000)]
+        ...     return len(data)
+        >>> result = memory_intensive()  # Prints memory usage info
+        >>> result
+        10000
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 8.1")
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> T:
+        # Start memory tracing
+        tracemalloc.start()
+        
+        try:
+            result = func(*args, **kwargs)
+            return result
+        finally:
+            # Get memory usage
+            current, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
+            
+            # Convert bytes to MB for readability
+            current_mb = current / 1024 / 1024
+            peak_mb = peak / 1024 / 1024
+            
+            print(f"{func.__name__} memory usage - Current: {current_mb:.2f}MB, Peak: {peak_mb:.2f}MB")
+    
+    return wrapper
 
 
 def pretty_print_object(obj: Any, max_depth: int = 3) -> str:
