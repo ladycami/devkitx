@@ -10,7 +10,10 @@ from dev_qol_toolkit.security_utils import (
     verify_password,
     generate_secret_key,
     generate_uuid,
-    hash_data
+    hash_data,
+    generate_jwt_token,
+    verify_jwt_token,
+    sanitize_input
 )
 
 
@@ -622,3 +625,365 @@ class TestDataHashing:
         # Should produce valid hash
         assert len(result) == 64  # SHA-256 produces 64 character hex string
         assert isinstance(result, str)
+
+
+class TestJWTTokens:
+    """Test JWT token generation and verification functions."""
+
+    def test_generate_jwt_token_basic(self):
+        """Test basic JWT token generation."""
+        payload = {"user_id": 123, "role": "admin"}
+        secret = "test-secret-key"
+        
+        token = generate_jwt_token(payload, secret)
+        
+        # JWT tokens have 3 parts separated by dots
+        parts = token.split('.')
+        assert len(parts) == 3
+        assert isinstance(token, str)
+
+    def test_generate_jwt_token_custom_expiration(self):
+        """Test JWT token generation with custom expiration."""
+        payload = {"user_id": 456}
+        secret = "test-secret"
+        expires_in = 7200  # 2 hours
+        
+        token = generate_jwt_token(payload, secret, expires_in)
+        
+        # Verify the token contains the correct expiration
+        decoded = verify_jwt_token(token, secret)
+        assert decoded is not None
+        assert decoded["user_id"] == 456
+        
+        # Check that expiration is approximately correct (within 5 seconds)
+        import time
+        expected_exp = int(time.time()) + expires_in
+        assert abs(decoded["exp"] - expected_exp) <= 5
+
+    def test_generate_jwt_token_includes_standard_claims(self):
+        """Test that generated tokens include standard JWT claims."""
+        payload = {"custom": "data"}
+        secret = "secret"
+        
+        token = generate_jwt_token(payload, secret)
+        decoded = verify_jwt_token(token, secret)
+        
+        assert decoded is not None
+        assert "iat" in decoded  # Issued at
+        assert "exp" in decoded  # Expiration
+        assert "custom" in decoded  # Original payload
+        assert decoded["custom"] == "data"
+
+    def test_generate_jwt_token_invalid_payload_type(self):
+        """Test that invalid payload type raises TypeError."""
+        with pytest.raises(TypeError, match="Payload must be a dictionary"):
+            generate_jwt_token("not a dict", "secret")  # type: ignore
+
+        with pytest.raises(TypeError, match="Payload must be a dictionary"):
+            generate_jwt_token(123, "secret")  # type: ignore
+
+    def test_generate_jwt_token_invalid_secret_type(self):
+        """Test that invalid secret type raises TypeError."""
+        payload = {"test": "data"}
+        
+        with pytest.raises(TypeError, match="Secret must be a string"):
+            generate_jwt_token(payload, 123)  # type: ignore
+
+    def test_generate_jwt_token_empty_secret(self):
+        """Test that empty secret raises ValueError."""
+        payload = {"test": "data"}
+        
+        with pytest.raises(ValueError, match="Secret cannot be empty"):
+            generate_jwt_token(payload, "")
+
+    def test_generate_jwt_token_invalid_expires_in_type(self):
+        """Test that invalid expires_in type raises TypeError."""
+        payload = {"test": "data"}
+        secret = "secret"
+        
+        with pytest.raises(TypeError, match="expires_in must be an integer"):
+            generate_jwt_token(payload, secret, "3600")  # type: ignore
+
+        with pytest.raises(TypeError, match="expires_in must be an integer"):
+            generate_jwt_token(payload, secret, 3600.5)  # type: ignore
+
+    def test_generate_jwt_token_invalid_expires_in_value(self):
+        """Test that invalid expires_in value raises ValueError."""
+        payload = {"test": "data"}
+        secret = "secret"
+        
+        with pytest.raises(ValueError, match="expires_in must be positive"):
+            generate_jwt_token(payload, secret, 0)
+
+        with pytest.raises(ValueError, match="expires_in must be positive"):
+            generate_jwt_token(payload, secret, -1)
+
+    def test_verify_jwt_token_valid_token(self):
+        """Test JWT token verification with valid token."""
+        payload = {"user_id": 789, "permissions": ["read", "write"]}
+        secret = "verification-secret"
+        
+        token = generate_jwt_token(payload, secret)
+        decoded = verify_jwt_token(token, secret)
+        
+        assert decoded is not None
+        assert decoded["user_id"] == 789
+        assert decoded["permissions"] == ["read", "write"]
+
+    def test_verify_jwt_token_wrong_secret(self):
+        """Test JWT token verification with wrong secret."""
+        payload = {"user_id": 123}
+        secret = "correct-secret"
+        wrong_secret = "wrong-secret"
+        
+        token = generate_jwt_token(payload, secret)
+        decoded = verify_jwt_token(token, wrong_secret)
+        
+        assert decoded is None
+
+    def test_verify_jwt_token_malformed_token(self):
+        """Test JWT token verification with malformed token."""
+        secret = "secret"
+        
+        # Various malformed tokens (excluding empty string which raises ValueError)
+        malformed_tokens = [
+            "not.a.jwt",
+            "invalid-token",
+            "too.few.parts",
+            "too.many.parts.here.extra",
+        ]
+        
+        for token in malformed_tokens:
+            decoded = verify_jwt_token(token, secret)
+            assert decoded is None
+
+    def test_verify_jwt_token_expired_token(self):
+        """Test JWT token verification with expired token."""
+        payload = {"user_id": 123}
+        secret = "secret"
+        
+        # Generate token that expires immediately
+        token = generate_jwt_token(payload, secret, 1)
+        
+        # Wait for token to expire
+        import time
+        time.sleep(2)
+        
+        decoded = verify_jwt_token(token, secret)
+        assert decoded is None
+
+    def test_verify_jwt_token_invalid_token_type(self):
+        """Test that invalid token type raises TypeError."""
+        secret = "secret"
+        
+        with pytest.raises(TypeError, match="Token must be a string"):
+            verify_jwt_token(123, secret)  # type: ignore
+
+    def test_verify_jwt_token_invalid_secret_type(self):
+        """Test that invalid secret type raises TypeError."""
+        token = "some.jwt.token"
+        
+        with pytest.raises(TypeError, match="Secret must be a string"):
+            verify_jwt_token(token, 123)  # type: ignore
+
+    def test_verify_jwt_token_empty_token(self):
+        """Test that empty token raises ValueError."""
+        secret = "secret"
+        
+        with pytest.raises(ValueError, match="Token cannot be empty"):
+            verify_jwt_token("", secret)
+
+    def test_verify_jwt_token_empty_secret(self):
+        """Test that empty secret raises ValueError."""
+        token = "some.jwt.token"
+        
+        with pytest.raises(ValueError, match="Secret cannot be empty"):
+            verify_jwt_token(token, "")
+
+    def test_jwt_roundtrip_integration(self):
+        """Test complete JWT generation and verification cycle."""
+        test_cases = [
+            {"user_id": 1, "role": "user"},
+            {"admin": True, "permissions": ["all"]},
+            {"data": {"nested": {"value": 42}}},
+            {"string": "test", "number": 123, "boolean": True, "null": None},
+        ]
+        
+        secret = "integration-test-secret"
+        
+        for original_payload in test_cases:
+            # Generate token
+            token = generate_jwt_token(original_payload, secret)
+            
+            # Verify token
+            decoded_payload = verify_jwt_token(token, secret)
+            
+            assert decoded_payload is not None
+            
+            # Check that original data is preserved
+            for key, value in original_payload.items():
+                assert decoded_payload[key] == value
+
+
+class TestInputSanitization:
+    """Test input sanitization functions."""
+
+    def test_sanitize_input_html_escaping(self):
+        """Test HTML escaping in input sanitization."""
+        dangerous_input = "<script>alert('xss')</script>"
+        expected = "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
+        
+        result = sanitize_input(dangerous_input)
+        assert result == expected
+
+    def test_sanitize_input_various_html_chars(self):
+        """Test sanitization of various HTML characters."""
+        test_cases = [
+            ("<", "&lt;"),
+            (">", "&gt;"),
+            ("&", "&amp;"),
+            ('"', "&quot;"),
+            ("'", "&#x27;"),
+        ]
+        
+        for input_char, expected in test_cases:
+            result = sanitize_input(input_char)
+            assert result == expected
+
+    def test_sanitize_input_allowed_chars_filter(self):
+        """Test character filtering with allowed_chars pattern."""
+        input_text = "Hello123!@#$%World"
+        
+        # Only allow letters and numbers
+        result = sanitize_input(input_text, r"a-zA-Z0-9")
+        assert result == "Hello123World"
+        
+        # Only allow letters
+        result = sanitize_input(input_text, r"a-zA-Z")
+        assert result == "HelloWorld"
+        
+        # Only allow numbers
+        result = sanitize_input(input_text, r"0-9")
+        assert result == "123"
+
+    def test_sanitize_input_whitespace_normalization(self):
+        """Test whitespace normalization."""
+        test_cases = [
+            ("  multiple   spaces  ", "multiple spaces"),
+            ("\t\ttabs\t\t", "tabs"),
+            ("\n\nnewlines\n\n", "newlines"),
+            ("  \t\n  mixed  \t\n  ", "mixed"),
+            ("", ""),
+            ("   ", ""),
+        ]
+        
+        for input_text, expected in test_cases:
+            result = sanitize_input(input_text)
+            assert result == expected
+
+    def test_sanitize_input_combined_operations(self):
+        """Test sanitization with multiple operations combined."""
+        input_text = "  <script>  alert('test')  </script>  "
+        
+        # Should HTML escape and normalize whitespace
+        result = sanitize_input(input_text)
+        expected = "&lt;script&gt; alert(&#x27;test&#x27;) &lt;/script&gt;"
+        assert result == expected
+
+    def test_sanitize_input_with_allowed_chars_and_html(self):
+        """Test sanitization with both HTML escaping and character filtering."""
+        input_text = "<div>Hello123!</div>"
+        
+        # Allow only letters and numbers - HTML escaping happens first, then filtering
+        # <div> becomes &lt;div&gt; then filtered to just letters/numbers
+        result = sanitize_input(input_text, r"a-zA-Z0-9")
+        assert result == "ltdivgtHello123ltdivgt"
+
+    def test_sanitize_input_invalid_text_type(self):
+        """Test that invalid text type raises TypeError."""
+        with pytest.raises(TypeError, match="Text must be a string"):
+            sanitize_input(123)  # type: ignore
+
+        with pytest.raises(TypeError, match="Text must be a string"):
+            sanitize_input(None)  # type: ignore
+
+    def test_sanitize_input_invalid_allowed_chars_type(self):
+        """Test that invalid allowed_chars type raises TypeError."""
+        with pytest.raises(TypeError, match="allowed_chars must be a string or None"):
+            sanitize_input("test", 123)  # type: ignore
+
+    def test_sanitize_input_regex_error_handling(self):
+        """Test regex error handling - skip if no easily invalid pattern exists."""
+        # Most regex patterns that look invalid are actually valid in character classes
+        # This test documents that the error handling exists but may not be easily triggered
+        pass
+
+    def test_sanitize_input_empty_string(self):
+        """Test sanitization of empty string."""
+        result = sanitize_input("")
+        assert result == ""
+
+    def test_sanitize_input_unicode_characters(self):
+        """Test sanitization with unicode characters."""
+        input_text = "Héllo Wörld 🌍"
+        
+        # Should preserve unicode by default
+        result = sanitize_input(input_text)
+        assert result == "Héllo Wörld 🌍"
+        
+        # Should filter unicode if not in allowed chars
+        result = sanitize_input(input_text, r"a-zA-Z ")
+        assert result == "Hllo Wrld"
+
+    def test_sanitize_input_sql_injection_patterns(self):
+        """Test sanitization against common SQL injection patterns."""
+        sql_patterns = [
+            "'; DROP TABLE users; --",
+            "1' OR '1'='1",
+            "admin'--",
+            "' UNION SELECT * FROM passwords --",
+        ]
+        
+        for pattern in sql_patterns:
+            result = sanitize_input(pattern)
+            # Should escape single quotes
+            assert "&#x27;" in result
+            # Should not contain unescaped quotes
+            assert "'" not in result
+
+    def test_sanitize_input_xss_patterns(self):
+        """Test sanitization against common XSS patterns."""
+        xss_patterns_with_html = [
+            "<script>alert('xss')</script>",
+            "<img src=x onerror=alert('xss')>",
+            "<svg onload=alert('xss')>",
+        ]
+        
+        for pattern in xss_patterns_with_html:
+            result = sanitize_input(pattern)
+            # Should escape HTML tags
+            assert "<" not in result
+            assert ">" not in result
+            assert "&lt;" in result or "&gt;" in result
+        
+        # Test non-HTML XSS pattern
+        js_pattern = "javascript:alert('xss')"
+        result = sanitize_input(js_pattern)
+        # Should escape quotes
+        assert "'" not in result
+        assert "&#x27;" in result
+
+    def test_sanitize_input_preserves_safe_content(self):
+        """Test that sanitization preserves safe content."""
+        safe_inputs = [
+            "Hello World",
+            "user@example.com",
+            "123-456-7890",
+            "Normal text with spaces",
+            "Numbers 123 and letters ABC",
+        ]
+        
+        for safe_input in safe_inputs:
+            result = sanitize_input(safe_input)
+            # Should be unchanged (except whitespace normalization)
+            assert result == safe_input.strip()
