@@ -17,6 +17,13 @@ help:
 	@echo "  version-bump-patch     Bump patch version"
 	@echo "  version-bump-minor     Bump minor version"
 	@echo "  version-bump-major     Bump major version"
+	@echo "  deploy-test     Deploy to TestPyPI"
+	@echo "  deploy          Deploy to PyPI"
+	@echo "  verify-deployment      Verify PyPI deployment"
+	@echo "  verify-test-deployment Verify TestPyPI deployment"
+	@echo "  release-patch   Bump patch, build, and deploy to TestPyPI"
+	@echo "  release-minor   Bump minor, build, and deploy to TestPyPI"
+	@echo "  release-major   Bump major, build, and deploy to TestPyPI"
 
 # Installation targets
 install:
@@ -71,12 +78,25 @@ version-bump-minor:
 version-bump-major:
 	python scripts/version_manager.py bump major
 
+# Deployment targets
+deploy-test:
+	python scripts/deploy.py --test-pypi
+
+deploy:
+	python scripts/deploy.py
+
+verify-deployment:
+	python scripts/verify_deployment.py
+
+verify-test-deployment:
+	python scripts/verify_deployment.py --test-pypi
+
 # Release workflow
-release-patch: version-bump-patch build
-	@echo "Patch release ready for deployment"
+release-patch: version-bump-patch build deploy-test
+	@echo "Patch release deployed to TestPyPI. Run 'make deploy' to deploy to PyPI"
 
-release-minor: version-bump-minor build
-	@echo "Minor release ready for deployment"
+release-minor: version-bump-minor build deploy-test
+	@echo "Minor release deployed to TestPyPI. Run 'make deploy' to deploy to PyPI"
 
-release-major: version-bump-major build
-	@echo "Major release ready for deployment"
+release-major: version-bump-major build deploy-test
+	@echo "Major release deployed to TestPyPI. Run 'make deploy' to deploy to PyPI"
