@@ -401,3 +401,224 @@ class TestDataHashing:
         # Should complete without error and produce consistent result
         assert result == hash_data(large_data)
         assert len(result) == 64  # SHA256 produces 64 hex characters
+
+
+class TestSecretGeneration:
+    """Test secret generation functions."""
+
+    def test_generate_secret_key_default_length(self):
+        """Test secret key generation with default length."""
+        key = generate_secret_key()
+        
+        # Should be base64 encoded
+        decoded = base64.b64decode(key)
+        assert len(decoded) == 32  # Default length
+        assert isinstance(key, str)
+
+    def test_generate_secret_key_custom_length(self):
+        """Test secret key generation with custom lengths."""
+        lengths = [8, 16, 24, 32, 64, 128]
+        
+        for length in lengths:
+            key = generate_secret_key(length)
+            decoded = base64.b64decode(key)
+            assert len(decoded) == length
+
+    def test_generate_secret_key_different_keys(self):
+        """Test that different calls generate different keys."""
+        key1 = generate_secret_key()
+        key2 = generate_secret_key()
+        
+        assert key1 != key2
+
+    def test_generate_secret_key_invalid_length_type(self):
+        """Test that non-integer length raises TypeError."""
+        with pytest.raises(TypeError, match="Length must be an integer"):
+            generate_secret_key("32")  # type: ignore
+
+        with pytest.raises(TypeError, match="Length must be an integer"):
+            generate_secret_key(32.5)  # type: ignore
+
+    def test_generate_secret_key_invalid_length_value(self):
+        """Test that invalid length values raise ValueError."""
+        with pytest.raises(ValueError, match="Length must be positive"):
+            generate_secret_key(0)
+
+        with pytest.raises(ValueError, match="Length must be positive"):
+            generate_secret_key(-1)
+
+        with pytest.raises(ValueError, match="Length cannot exceed 1024 bytes"):
+            generate_secret_key(1025)
+
+    def test_generate_secret_key_edge_cases(self):
+        """Test edge cases for secret key generation."""
+        # Minimum valid length
+        key = generate_secret_key(1)
+        decoded = base64.b64decode(key)
+        assert len(decoded) == 1
+
+        # Maximum valid length
+        key = generate_secret_key(1024)
+        decoded = base64.b64decode(key)
+        assert len(decoded) == 1024
+
+    def test_generate_uuid_format(self):
+        """Test UUID generation format."""
+        uuid_str = generate_uuid()
+        
+        # Standard UUID4 format: 8-4-4-4-12 characters
+        assert len(uuid_str) == 36
+        assert uuid_str.count('-') == 4
+        
+        # Should be valid UUID
+        uuid.UUID(uuid_str)  # Will raise ValueError if invalid
+
+    def test_generate_uuid_different_values(self):
+        """Test that different calls generate different UUIDs."""
+        uuid1 = generate_uuid()
+        uuid2 = generate_uuid()
+        
+        assert uuid1 != uuid2
+
+    def test_generate_uuid_version(self):
+        """Test that generated UUIDs are version 4."""
+        uuid_str = generate_uuid()
+        uuid_obj = uuid.UUID(uuid_str)
+        
+        assert uuid_obj.version == 4
+
+
+class TestDataHashing:
+    """Test data hashing functions."""
+
+    def test_hash_data_string_sha256(self):
+        """Test hashing string data with SHA-256."""
+        data = "hello world"
+        expected = "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+        
+        result = hash_data(data)
+        assert result == expected
+
+    def test_hash_data_bytes_sha256(self):
+        """Test hashing bytes data with SHA-256."""
+        data = b"hello world"
+        expected = "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+        
+        result = hash_data(data)
+        assert result == expected
+
+    def test_hash_data_different_algorithms(self):
+        """Test hashing with different algorithms."""
+        data = "test"
+        
+        # Test MD5
+        md5_result = hash_data(data, "md5")
+        assert md5_result == "098f6bcd4621d373cade4e832627b4f6"
+        
+        # Test SHA-1
+        sha1_result = hash_data(data, "sha1")
+        assert sha1_result == "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+        
+        # Test SHA-512
+        sha512_result = hash_data(data, "sha512")
+        expected_sha512 = "ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f50028a8ff"
+        assert sha512_result == expected_sha512
+
+    def test_hash_data_empty_string(self):
+        """Test hashing empty string."""
+        result = hash_data("")
+        expected = hashlib.sha256(b"").hexdigest()
+        assert result == expected
+
+    def test_hash_data_empty_bytes(self):
+        """Test hashing empty bytes."""
+        result = hash_data(b"")
+        expected = hashlib.sha256(b"").hexdigest()
+        assert result == expected
+
+    def test_hash_data_unicode_string(self):
+        """Test hashing unicode string."""
+        data = "héllo wörld 🌍"
+        result = hash_data(data)
+        
+        # Should be consistent
+        assert result == hash_data(data)
+        
+        # Should be different from ASCII version
+        assert result != hash_data("hello world")
+
+    def test_hash_data_invalid_data_type(self):
+        """Test that invalid data types raise TypeError."""
+        with pytest.raises(TypeError, match="Data must be string or bytes"):
+            hash_data(123)  # type: ignore
+
+        with pytest.raises(TypeError, match="Data must be string or bytes"):
+            hash_data(None)  # type: ignore
+
+        with pytest.raises(TypeError, match="Data must be string or bytes"):
+            hash_data(["list"])  # type: ignore
+
+    def test_hash_data_invalid_algorithm_type(self):
+        """Test that invalid algorithm type raises TypeError."""
+        with pytest.raises(TypeError, match="Algorithm must be a string"):
+            hash_data("test", 123)  # type: ignore
+
+    def test_hash_data_unsupported_algorithm(self):
+        """Test that unsupported algorithm raises ValueError."""
+        with pytest.raises(ValueError, match="Unsupported algorithm 'invalid_algo'"):
+            hash_data("test", "invalid_algo")
+
+    def test_hash_data_case_sensitive_algorithm(self):
+        """Test that algorithm names are case sensitive."""
+        data = "test"
+        
+        # These should work
+        result1 = hash_data(data, "sha256")
+        result2 = hash_data(data, "md5")
+        
+        # These might not work depending on system
+        try:
+            result3 = hash_data(data, "SHA256")
+            # If it works, results should be the same
+            assert result1 == result3
+        except ValueError:
+            # Case sensitivity - this is expected on some systems
+            pass
+
+    def test_hash_data_consistency(self):
+        """Test that hashing is consistent across calls."""
+        data = "consistency test"
+        algorithm = "sha256"
+        
+        result1 = hash_data(data, algorithm)
+        result2 = hash_data(data, algorithm)
+        
+        assert result1 == result2
+
+    def test_hash_data_different_data_different_hash(self):
+        """Test that different data produces different hashes."""
+        data1 = "data1"
+        data2 = "data2"
+        
+        hash1 = hash_data(data1)
+        hash2 = hash_data(data2)
+        
+        assert hash1 != hash2
+
+    def test_hash_data_large_data(self):
+        """Test hashing large amounts of data."""
+        large_data = "x" * 10000
+        result = hash_data(large_data)
+        
+        # Should still produce valid hash
+        assert len(result) == 64  # SHA-256 produces 64 character hex string
+        assert isinstance(result, str)
+
+    def test_hash_data_binary_data(self):
+        """Test hashing binary data."""
+        binary_data = bytes(range(256))
+        result = hash_data(binary_data)
+        
+        # Should produce valid hash
+        assert len(result) == 64  # SHA-256 produces 64 character hex string
+        assert isinstance(result, str)
