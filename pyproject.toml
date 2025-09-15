@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dev-qol-toolkit"
-version = "0.1.0"
-description = "Quality-of-life utilities for Python engineers: JSON, files, logging, CLI, HTTP."
+version = "1.0.0"
+description = "Comprehensive quality-of-life utilities for Python developers including JSON, HTTP, async, security, validation, and more."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "SerityOps Innovations", email = "info@serityops.dev" }]
@@ -18,11 +18,14 @@ dependencies = [
   "PyJWT>=2.8.0"
 ]
 keywords = [
-  "utilities", "developer-tools", "json", "logging", "cli",
-  "http", "files", "devtools", "async", "configuration",
-  "validation", "security", "string-manipulation"
+  "utilities", "developer-tools", "json", "logging", "cli", "http", "files", 
+  "devtools", "async", "configuration", "validation", "security", 
+  "string-manipulation", "time-utils", "system-utils", "debugging", 
+  "profiling", "jwt", "bcrypt", "yaml", "toml", "env-files", "retry-logic",
+  "progress-bars", "colored-output", "cross-platform", "type-safe"
 ]
 classifiers = [
+  "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
@@ -31,12 +34,25 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "License :: OSI Approved :: MIT License",
   "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+  "Topic :: System :: Systems Administration",
+  "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+  "Topic :: Security :: Cryptography",
+  "Topic :: Text Processing :: General",
   "Typing :: Typed",
+  "Operating System :: OS Independent",
+  "Environment :: Console",
 ]
 
 [project.urls]
 Homepage = "https://github.com/serityops/dev-qol-toolkit"
 Issues = "https://github.com/serityops/dev-qol-toolkit/issues"
+Documentation = "https://github.com/serityops/dev-qol-toolkit#readme"
+Repository = "https://github.com/serityops/dev-qol-toolkit.git"
+
+[project.scripts]
+dev-qol-toolkit = "dev_qol_toolkit.__main__:main"
 
 [project.optional-dependencies]
 dev = [
