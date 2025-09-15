@@ -217,24 +217,115 @@ class TestFormatDuration:
         assert result == "0.5s"
 
 
-# Placeholder tests for functions that will be implemented in later tasks
 class TestTimezoneAndBusinessDay:
     """Tests for timezone and business day functions (Task 10.2)."""
     
-    def test_get_timezone_offset_not_implemented(self):
-        """Test that get_timezone_offset raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            get_timezone_offset("US/Eastern")
+    def test_get_timezone_offset_utc(self):
+        """Test getting UTC timezone offset."""
+        result = get_timezone_offset("UTC")
+        assert result == timedelta(0)
     
-    def test_is_business_day_not_implemented(self):
-        """Test that is_business_day raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            is_business_day(datetime.now())
+    def test_get_timezone_offset_gmt(self):
+        """Test getting GMT timezone offset."""
+        result = get_timezone_offset("GMT")
+        assert result == timedelta(0)
     
-    def test_next_business_day_not_implemented(self):
-        """Test that next_business_day raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            next_business_day(datetime.now())
+    def test_get_timezone_offset_common_timezones(self):
+        """Test getting offsets for common US timezones."""
+        # These are standard time offsets (not accounting for DST)
+        try:
+            # Try with system timezone support first
+            est_offset = get_timezone_offset("EST")
+            assert isinstance(est_offset, timedelta)
+        except ValueError:
+            # Fallback to basic implementation
+            est_offset = get_timezone_offset("EST")
+            assert est_offset == timedelta(hours=-5)
+    
+    def test_get_timezone_offset_invalid(self):
+        """Test getting offset for invalid timezone raises ValueError."""
+        with pytest.raises(ValueError, match="not recognized|Invalid timezone"):
+            get_timezone_offset("INVALID/TIMEZONE")
+    
+    def test_is_business_day_weekdays(self):
+        """Test that weekdays are business days."""
+        # Monday (2024-01-15)
+        assert is_business_day(datetime(2024, 1, 15)) is True
+        # Tuesday (2024-01-16)
+        assert is_business_day(datetime(2024, 1, 16)) is True
+        # Wednesday (2024-01-17)
+        assert is_business_day(datetime(2024, 1, 17)) is True
+        # Thursday (2024-01-18)
+        assert is_business_day(datetime(2024, 1, 18)) is True
+        # Friday (2024-01-19)
+        assert is_business_day(datetime(2024, 1, 19)) is True
+    
+    def test_is_business_day_weekends(self):
+        """Test that weekends are not business days."""
+        # Saturday (2024-01-13)
+        assert is_business_day(datetime(2024, 1, 13)) is False
+        # Sunday (2024-01-14)
+        assert is_business_day(datetime(2024, 1, 14)) is False
+    
+    def test_is_business_day_with_time(self):
+        """Test that time component doesn't affect business day check."""
+        # Monday with different times
+        assert is_business_day(datetime(2024, 1, 15, 9, 0, 0)) is True
+        assert is_business_day(datetime(2024, 1, 15, 17, 30, 45)) is True
+        
+        # Saturday with different times
+        assert is_business_day(datetime(2024, 1, 13, 9, 0, 0)) is False
+        assert is_business_day(datetime(2024, 1, 13, 17, 30, 45)) is False
+    
+    def test_next_business_day_from_weekday(self):
+        """Test getting next business day from a weekday."""
+        # From Monday to Tuesday
+        result = next_business_day(datetime(2024, 1, 15, 14, 30))
+        expected = datetime(2024, 1, 16, 14, 30)
+        assert result == expected
+        
+        # From Wednesday to Thursday
+        result = next_business_day(datetime(2024, 1, 17, 9, 0))
+        expected = datetime(2024, 1, 18, 9, 0)
+        assert result == expected
+    
+    def test_next_business_day_from_friday(self):
+        """Test getting next business day from Friday (should be Monday)."""
+        # From Friday to Monday
+        result = next_business_day(datetime(2024, 1, 19, 16, 45))
+        expected = datetime(2024, 1, 22, 16, 45)  # Next Monday
+        assert result == expected
+    
+    def test_next_business_day_from_saturday(self):
+        """Test getting next business day from Saturday (should be Monday)."""
+        # From Saturday to Monday
+        result = next_business_day(datetime(2024, 1, 13, 10, 0))
+        expected = datetime(2024, 1, 15, 10, 0)  # Next Monday
+        assert result == expected
+    
+    def test_next_business_day_from_sunday(self):
+        """Test getting next business day from Sunday (should be Monday)."""
+        # From Sunday to Monday
+        result = next_business_day(datetime(2024, 1, 14, 12, 30))
+        expected = datetime(2024, 1, 15, 12, 30)  # Next Monday
+        assert result == expected
+    
+    def test_next_business_day_preserves_time(self):
+        """Test that next business day preserves the time component."""
+        # Test with various times
+        times = [
+            (0, 0, 0),      # Midnight
+            (9, 30, 0),     # Morning
+            (12, 0, 0),     # Noon
+            (17, 45, 30),   # Evening
+            (23, 59, 59),   # End of day
+        ]
+        
+        for hour, minute, second in times:
+            original = datetime(2024, 1, 15, hour, minute, second)  # Monday
+            result = next_business_day(original)
+            expected = datetime(2024, 1, 16, hour, minute, second)  # Tuesday
+            assert result == expected
 
 
 class TestSchedulingAndTimer:

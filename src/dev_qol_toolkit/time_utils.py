@@ -144,13 +144,54 @@ def get_timezone_offset(tz_name: str) -> timedelta:
     """Get timezone offset from UTC.
     
     Args:
-        tz_name: Timezone name (e.g., 'US/Eastern')
+        tz_name: Timezone name (e.g., 'US/Eastern', 'Europe/London', 'UTC')
         
     Returns:
         Timezone offset as timedelta
+        
+    Raises:
+        ValueError: If timezone name is not recognized
+        
+    Examples:
+        >>> get_timezone_offset("UTC")
+        datetime.timedelta(0)
+        >>> # Note: Actual offsets depend on current date due to DST
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 10.2")
+    try:
+        from zoneinfo import ZoneInfo
+    except ImportError:
+        # Fallback for Python < 3.9 or systems without zoneinfo
+        try:
+            import pytz
+            tz = pytz.timezone(tz_name)
+            # Get current offset (this will vary with DST)
+            now = datetime.now(tz)
+            return now.utcoffset() or timedelta(0)
+        except ImportError:
+            # Basic fallback for common timezones
+            common_offsets = {
+                "UTC": timedelta(0),
+                "GMT": timedelta(0),
+                "EST": timedelta(hours=-5),
+                "CST": timedelta(hours=-6),
+                "MST": timedelta(hours=-7),
+                "PST": timedelta(hours=-8),
+                "EDT": timedelta(hours=-4),
+                "CDT": timedelta(hours=-5),
+                "MDT": timedelta(hours=-6),
+                "PDT": timedelta(hours=-7),
+            }
+            if tz_name in common_offsets:
+                return common_offsets[tz_name]
+            raise ValueError(f"Timezone '{tz_name}' not recognized and zoneinfo/pytz not available")
+    
+    try:
+        tz = ZoneInfo(tz_name)
+        # Get current offset (this will vary with DST)
+        now = datetime.now(tz)
+        return now.utcoffset() or timedelta(0)
+    except Exception as e:
+        raise ValueError(f"Invalid timezone name '{tz_name}': {e}")
 
 
 def is_business_day(date: datetime) -> bool:
@@ -161,9 +202,20 @@ def is_business_day(date: datetime) -> bool:
         
     Returns:
         True if business day, False otherwise
+        
+    Examples:
+        >>> # Monday is a business day
+        >>> is_business_day(datetime(2024, 1, 15))  # Monday
+        True
+        >>> # Saturday is not a business day
+        >>> is_business_day(datetime(2024, 1, 13))  # Saturday
+        False
+        >>> # Sunday is not a business day
+        >>> is_business_day(datetime(2024, 1, 14))  # Sunday
+        False
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 10.2")
+    # Monday is 0, Sunday is 6
+    return date.weekday() < 5
 
 
 def next_business_day(date: datetime) -> datetime:
@@ -173,10 +225,23 @@ def next_business_day(date: datetime) -> datetime:
         date: Starting date
         
     Returns:
-        Next business day
+        Next business day (preserves time component)
+        
+    Examples:
+        >>> # From Friday, next business day is Monday
+        >>> next_business_day(datetime(2024, 1, 12, 14, 30))  # Friday
+        datetime.datetime(2024, 1, 15, 14, 30)
+        >>> # From Wednesday, next business day is Thursday
+        >>> next_business_day(datetime(2024, 1, 10, 9, 0))   # Wednesday
+        datetime.datetime(2024, 1, 11, 9, 0)
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 10.2")
+    next_date = date + timedelta(days=1)
+    
+    # Keep adding days until we find a business day
+    while not is_business_day(next_date):
+        next_date += timedelta(days=1)
+    
+    return next_date
 
 
 def cron_next_run(cron_expr: str, from_time: datetime | None = None) -> datetime:
