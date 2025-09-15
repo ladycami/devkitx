@@ -84,7 +84,7 @@ def add_system_commands(subparsers: argparse._SubParsersAction) -> None:
     
     # Run command
     run_parser = system_sub.add_parser("run", help="Run system command with timeout")
-    run_parser.add_argument("command", nargs="+", help="Command to run")
+    run_parser.add_argument("cmd", nargs="+", help="Command to run")
     run_parser.add_argument("--timeout", type=float, help="Timeout in seconds")
     
     # Find executable command
@@ -274,7 +274,7 @@ def execute_system_commands(args: argparse.Namespace) -> int:
             return 1
     elif args.system_cmd == "run":
         try:
-            result = system_utils.run_command(args.command, timeout=args.timeout)
+            result = system_utils.run_command(args.cmd, timeout=args.timeout)
             print(result.stdout)
             if result.stderr:
                 print(f"STDERR: {result.stderr}", file=sys.stderr)

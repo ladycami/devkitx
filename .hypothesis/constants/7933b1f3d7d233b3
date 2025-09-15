@@ -1,0 +1,4 @@
+# file: /Users/lc3053/repos/dev-qol-toolkit/src/dev_qol_toolkit/data_utils.py
+# hypothesis_version: 6.138.16
+
+['(.)([A-Z][a-z]+)', '([a-z0-9])([A-Z])', '[_\\-\\s]+', '\\1_\\2', 'added', 'modified', 'new', 'old', 'removed', 'size must be > 0', 'unchanged']
