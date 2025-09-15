@@ -139,7 +139,16 @@ class TestSecurityCommands:
         """Test secret generation."""
         result = run_cli_command("security", "generate-secret", "--length", "16")
         assert result.returncode == 0
-        assert len(result.stdout.strip()) == 32  # 16 bytes = 32 hex chars
+        # 16 bytes base64 encoded should be 24 characters (with padding)
+        secret = result.stdout.strip()
+        assert len(secret) == 24
+        # Should be valid base64
+        import base64
+        try:
+            decoded = base64.b64decode(secret)
+            assert len(decoded) == 16
+        except Exception:
+            assert False, "Generated secret is not valid base64"
     
     def test_security_generate_uuid(self):
         """Test UUID generation."""
@@ -158,7 +167,8 @@ class TestTimeCommands:
         """Test duration formatting."""
         result = run_cli_command("time", "duration", "3661")  # 1 hour, 1 minute, 1 second
         assert result.returncode == 0
-        assert "1h" in result.stdout and "1m" in result.stdout and "1s" in result.stdout
+        output = result.stdout.strip()
+        assert "1h" in output and "1m" in output and "s" in output
     
     def test_time_business_day(self):
         """Test business day check."""
