@@ -4,16 +4,15 @@ import asyncio
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-from dev_qol_toolkit.async_utils import (
-    AsyncFileManager, 
-    async_to_sync, 
+from devtools_py.async_utils import (
+    AsyncFileManager,
+    async_to_sync,
     sync_to_async,
     gather_with_limit,
-    retry_async
+    retry_async,
 )
 
 
@@ -22,11 +21,12 @@ class TestAsyncBridgeFunctions:
 
     def test_sync_to_async_basic(self):
         """Test basic sync to async conversion."""
+
         def sync_function(x: int) -> int:
             return x * 2
 
         async_func = sync_to_async(sync_function)
-        
+
         async def test_async():
             result = await async_func(5)
             assert result == 10
@@ -35,11 +35,12 @@ class TestAsyncBridgeFunctions:
 
     def test_sync_to_async_with_args_kwargs(self):
         """Test sync to async conversion with args and kwargs."""
+
         def sync_function(a: int, b: int, multiplier: int = 1) -> int:
             return (a + b) * multiplier
 
         async_func = sync_to_async(sync_function)
-        
+
         async def test_async():
             result = await async_func(3, 4, multiplier=2)
             assert result == 14
@@ -48,6 +49,7 @@ class TestAsyncBridgeFunctions:
 
     def test_sync_to_async_preserves_function_name(self):
         """Test that sync_to_async preserves function metadata."""
+
         def original_function(x: int) -> int:
             """Original function docstring."""
             return x
@@ -58,11 +60,12 @@ class TestAsyncBridgeFunctions:
 
     def test_sync_to_async_with_exception(self):
         """Test sync to async conversion handles exceptions."""
+
         def failing_function():
             raise ValueError("Test error")
 
         async_func = sync_to_async(failing_function)
-        
+
         async def test_async():
             with pytest.raises(ValueError, match="Test error"):
                 await async_func()
@@ -71,6 +74,7 @@ class TestAsyncBridgeFunctions:
 
     def test_async_to_sync_basic(self):
         """Test basic async to sync conversion."""
+
         async def async_function(x: int) -> int:
             await asyncio.sleep(0.01)  # Small delay to ensure it's truly async
             return x * 2
@@ -81,6 +85,7 @@ class TestAsyncBridgeFunctions:
 
     def test_async_to_sync_with_args_kwargs(self):
         """Test async to sync conversion with args and kwargs."""
+
         async def async_function(a: int, b: int, multiplier: int = 1) -> int:
             await asyncio.sleep(0.01)
             return (a + b) * multiplier
@@ -91,6 +96,7 @@ class TestAsyncBridgeFunctions:
 
     def test_async_to_sync_preserves_function_name(self):
         """Test that async_to_sync preserves function metadata."""
+
         async def original_async_function(x: int) -> int:
             """Original async function docstring."""
             return x
@@ -101,29 +107,32 @@ class TestAsyncBridgeFunctions:
 
     def test_async_to_sync_with_exception(self):
         """Test async to sync conversion handles exceptions."""
+
         async def failing_async_function():
             await asyncio.sleep(0.01)
             raise ValueError("Async test error")
 
         sync_func = async_to_sync(failing_async_function)
-        
+
         with pytest.raises(ValueError, match="Async test error"):
             sync_func()
 
     def test_roundtrip_conversion(self):
         """Test converting sync -> async -> sync works correctly."""
+
         def original_sync(x: int) -> int:
             return x * 3
 
         # Convert sync to async, then back to sync
         async_version = sync_to_async(original_sync)
         back_to_sync = async_to_sync(async_version)
-        
+
         result = back_to_sync(4)
         assert result == 12
 
     def test_async_to_sync_in_async_context(self):
         """Test async_to_sync behavior when called from async context."""
+
         async def inner_async(x: int) -> int:
             await asyncio.sleep(0.01)
             return x * 2
@@ -139,6 +148,7 @@ class TestAsyncBridgeFunctions:
 
     def test_sync_to_async_performance(self):
         """Test that sync_to_async doesn't block the event loop."""
+
         def slow_sync_function():
             time.sleep(0.1)  # Simulate slow operation
             return "done"
@@ -151,7 +161,7 @@ class TestAsyncBridgeFunctions:
             start_time = time.time()
             results = await asyncio.gather(*tasks)
             end_time = time.time()
-            
+
             # Should complete in roughly 0.1 seconds (concurrent), not 0.3 (sequential)
             assert end_time - start_time < 0.2
             assert all(result == "done" for result in results)
@@ -160,11 +170,12 @@ class TestAsyncBridgeFunctions:
 
     def test_sync_to_async_with_none_return(self):
         """Test sync_to_async with function that returns None."""
+
         def void_function():
             pass
 
         async_func = sync_to_async(void_function)
-        
+
         async def test_async():
             result = await async_func()
             assert result is None
@@ -173,6 +184,7 @@ class TestAsyncBridgeFunctions:
 
     def test_async_to_sync_with_none_return(self):
         """Test async_to_sync with function that returns None."""
+
         async def void_async_function():
             await asyncio.sleep(0.01)
 
@@ -186,6 +198,7 @@ class TestAsyncUtilsIntegration:
 
     def test_mixed_sync_async_workflow(self):
         """Test a workflow mixing sync and async functions."""
+
         def process_data(data: list[int]) -> list[int]:
             return [x * 2 for x in data]
 
@@ -315,10 +328,10 @@ class TestAsyncFileManager:
         async def test_async():
             await async_fm.write_text(source_file, test_content)
             await async_fm.copy_file(source_file, dest_file)
-            
+
             source_content = await async_fm.read_text(source_file)
             dest_content = await async_fm.read_text(dest_file)
-            
+
             assert source_content == dest_content == test_content
 
         asyncio.run(test_async())
@@ -332,7 +345,7 @@ class TestAsyncFileManager:
         async def test_async():
             await async_fm.write_text(source_file, test_content)
             await async_fm.copy_file(source_file, dest_file, create_parents=True)
-            
+
             dest_content = await async_fm.read_text(dest_file)
             assert dest_content == test_content
 
@@ -345,7 +358,7 @@ class TestAsyncFileManager:
 
         async def test_async():
             await async_fm.write_text(existing_file, "I exist")
-            
+
             assert await async_fm.exists(existing_file) is True
             assert await async_fm.exists(nonexistent_file) is False
 
@@ -359,7 +372,7 @@ class TestAsyncFileManager:
         async def test_async():
             await async_fm.mkdir(new_dir)
             assert new_dir.is_dir()
-            
+
             await async_fm.mkdir(nested_dir, parents=True)
             assert nested_dir.is_dir()
 
@@ -371,10 +384,10 @@ class TestAsyncFileManager:
 
         async def test_async():
             await async_fm.mkdir(new_dir)
-            
+
             # Should not raise with exist_ok=True (default)
             await async_fm.mkdir(new_dir, exist_ok=True)
-            
+
             # Should raise with exist_ok=False
             with pytest.raises(FileExistsError):
                 await async_fm.mkdir(new_dir, exist_ok=False)
@@ -388,7 +401,7 @@ class TestAsyncFileManager:
         async def test_async():
             await async_fm.write_text(test_file, "Remove me")
             assert await async_fm.exists(test_file)
-            
+
             await async_fm.remove(test_file)
             assert not await async_fm.exists(test_file)
 
@@ -412,10 +425,10 @@ class TestAsyncFileManager:
         async def test_async():
             for filename in files:
                 await async_fm.write_text(temp_dir / filename, f"Content of {filename}")
-            
+
             contents = await async_fm.list_dir(temp_dir)
             content_names = {path.name for path in contents}
-            
+
             assert len(contents) >= len(files)  # May have other files
             for filename in files:
                 assert filename in content_names
@@ -435,29 +448,28 @@ class TestAsyncFileManager:
     def test_concurrent_operations(self, async_fm, temp_dir):
         """Test that multiple async operations can run concurrently."""
         files = [temp_dir / f"concurrent_{i}.txt" for i in range(5)]
-        
+
         async def test_async():
             # Start multiple write operations concurrently
             write_tasks = [
-                async_fm.write_text(file_path, f"Content {i}")
-                for i, file_path in enumerate(files)
+                async_fm.write_text(file_path, f"Content {i}") for i, file_path in enumerate(files)
             ]
-            
+
             start_time = time.time()
             await asyncio.gather(*write_tasks)
             write_time = time.time() - start_time
-            
+
             # Read all files concurrently
             read_tasks = [async_fm.read_text(file_path) for file_path in files]
-            
+
             start_time = time.time()
             contents = await asyncio.gather(*read_tasks)
             read_time = time.time() - start_time
-            
+
             # Verify contents
             for i, content in enumerate(contents):
                 assert content == f"Content {i}"
-            
+
             # Operations should be reasonably fast (concurrent, not sequential)
             assert write_time < 1.0  # Should be much faster than 5 seconds
             assert read_time < 1.0
@@ -466,29 +478,29 @@ class TestAsyncFileManager:
 
     def test_error_handling(self, async_fm, temp_dir):
         """Test error handling in async operations."""
+
         async def test_async():
             # Test reading nonexistent file
             with pytest.raises(FileNotFoundError):
                 await async_fm.read_text(temp_dir / "nonexistent.txt")
-            
+
             # Test reading bytes from nonexistent file
             with pytest.raises(FileNotFoundError):
                 await async_fm.read_bytes(temp_dir / "nonexistent.bin")
-            
+
             # Test copying nonexistent file
             with pytest.raises(FileNotFoundError):
-                await async_fm.copy_file(
-                    temp_dir / "nonexistent.txt",
-                    temp_dir / "destination.txt"
-                )
+                await async_fm.copy_file(temp_dir / "nonexistent.txt", temp_dir / "destination.txt")
 
         asyncio.run(test_async())
+
 
 class TestAsyncUtilityFunctions:
     """Test async utility functions."""
 
     def test_gather_with_limit_basic(self):
         """Test basic gather_with_limit functionality."""
+
         async def slow_task(value: int, delay: float = 0.01) -> int:
             await asyncio.sleep(delay)
             return value * 2
@@ -502,6 +514,7 @@ class TestAsyncUtilityFunctions:
 
     def test_gather_with_limit_empty(self):
         """Test gather_with_limit with empty input."""
+
         async def test_async():
             results = await gather_with_limit(3)
             assert results == []
@@ -510,6 +523,7 @@ class TestAsyncUtilityFunctions:
 
     def test_gather_with_limit_invalid_limit(self):
         """Test gather_with_limit with invalid limit."""
+
         async def dummy_task():
             return 1
 
@@ -528,19 +542,19 @@ class TestAsyncUtilityFunctions:
             nonlocal concurrent_count, max_concurrent
             concurrent_count += 1
             max_concurrent = max(max_concurrent, concurrent_count)
-            
+
             await asyncio.sleep(0.05)  # Simulate work
-            
+
             concurrent_count -= 1
             return task_id
 
         async def test_async():
             nonlocal max_concurrent
             max_concurrent = 0
-            
+
             tasks = [monitored_task(i) for i in range(10)]
             results = await gather_with_limit(3, *tasks)
-            
+
             assert results == list(range(10))
             assert max_concurrent <= 3  # Should never exceed limit
 
@@ -548,6 +562,7 @@ class TestAsyncUtilityFunctions:
 
     def test_gather_with_limit_exception_handling(self):
         """Test gather_with_limit handles exceptions properly."""
+
         async def failing_task(should_fail: bool) -> str:
             await asyncio.sleep(0.01)
             if should_fail:
@@ -560,7 +575,7 @@ class TestAsyncUtilityFunctions:
                 failing_task(True),
                 failing_task(False),
             ]
-            
+
             with pytest.raises(ValueError, match="Task failed"):
                 await gather_with_limit(2, *tasks)
 
@@ -578,7 +593,7 @@ class TestAsyncUtilityFunctions:
         async def test_async():
             nonlocal call_count
             call_count = 0
-            
+
             result = await retry_async(successful_func, retries=3, delay=0.01, value=5)
             assert result == 10
             assert call_count == 1
@@ -599,13 +614,13 @@ class TestAsyncUtilityFunctions:
         async def test_async():
             nonlocal call_count
             call_count = 0
-            
+
             result = await retry_async(
                 eventually_successful_func,
-                retries=3, 
+                retries=3,
                 delay=0.01,
                 exceptions=(ConnectionError,),
-                value=5
+                value=5,
             )
             assert result == 10
             assert call_count == 3
@@ -624,15 +639,12 @@ class TestAsyncUtilityFunctions:
         async def test_async():
             nonlocal call_count
             call_count = 0
-            
+
             with pytest.raises(ValueError, match="Always fails"):
                 await retry_async(
-                    always_failing_func,
-                    retries=2,
-                    delay=0.01,
-                    exceptions=(ValueError,)
+                    always_failing_func, retries=2, delay=0.01, exceptions=(ValueError,)
                 )
-            
+
             assert call_count == 3  # Initial + 2 retries
 
         asyncio.run(test_async())
@@ -652,17 +664,16 @@ class TestAsyncUtilityFunctions:
         async def test_async():
             nonlocal call_count
             call_count = 0
-            
+
             # Should not retry ValueError
             with pytest.raises(ValueError, match="Non-retryable error"):
                 await retry_async(
-                    mixed_failure_func,
-                    retries=3,
-                    delay=0.01,
-                    exceptions=(ConnectionError,)
+                    mixed_failure_func, retries=3, delay=0.01, exceptions=(ConnectionError,)
                 )
-            
-            assert call_count == 2  # First call raises ConnectionError (retried), second raises ValueError (not retried)
+
+            assert (
+                call_count == 2
+            )  # First call raises ConnectionError (retried), second raises ValueError (not retried)
 
         asyncio.run(test_async())
 
@@ -677,23 +688,23 @@ class TestAsyncUtilityFunctions:
         async def test_async():
             nonlocal call_times
             call_times = []
-            
+
             with pytest.raises(ConnectionError):
                 await retry_async(
                     timing_func,
                     retries=2,
                     delay=0.1,
                     backoff_factor=2.0,
-                    exceptions=(ConnectionError,)
+                    exceptions=(ConnectionError,),
                 )
-            
+
             assert len(call_times) == 3  # Initial + 2 retries
-            
+
             # Check that delays are approximately correct (with some tolerance)
             if len(call_times) >= 2:
                 delay1 = call_times[1] - call_times[0]
                 assert 0.08 <= delay1 <= 0.15  # ~0.1 seconds
-            
+
             if len(call_times) >= 3:
                 delay2 = call_times[2] - call_times[1]
                 assert 0.18 <= delay2 <= 0.25  # ~0.2 seconds (2x backoff)
@@ -702,16 +713,13 @@ class TestAsyncUtilityFunctions:
 
     def test_retry_async_with_kwargs(self):
         """Test retry_async with function arguments."""
+
         async def func_with_args(a: int, b: int, multiplier: int = 1) -> int:
             return (a + b) * multiplier
 
         async def test_async():
             result = await retry_async(
-                func_with_args,
-                retries=1,
-                delay=0.01,
-                a=3, b=4,
-                multiplier=2
+                func_with_args, retries=1, delay=0.01, a=3, b=4, multiplier=2
             )
             assert result == 14
 

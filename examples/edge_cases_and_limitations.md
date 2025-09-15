@@ -1,6 +1,6 @@
 # Edge Cases and Limitations Guide
 
-This document comprehensively covers edge cases, limitations, and gotchas for all utilities in the dev-qol-toolkit.
+This document comprehensively covers edge cases, limitations, and gotchas for all utilities in the devtools-py.
 
 ## Table of Contents
 
@@ -161,7 +161,7 @@ test_strings = [
     "test\x00null"  # Null bytes
 ]
 
-from dev_qol_toolkit.string_utils import normalize_whitespace
+from devtools_py.string_utils import normalize_whitespace
 
 for s in test_strings:
     try:
@@ -188,7 +188,7 @@ edge_cases = [
     "SCREAMING_SNAKE_CASE"  # All caps
 ]
 
-from dev_qol_toolkit.string_utils import to_camel_case, to_snake_case
+from devtools_py.string_utils import to_camel_case, to_snake_case
 
 for case in edge_cases:
     try:
@@ -217,7 +217,7 @@ edge_case_emails = [
     "user@domain .com",         # Space in domain (invalid)
 ]
 
-from dev_qol_toolkit.string_utils import validate_email
+from devtools_py.string_utils import validate_email
 
 print("Email validation edge cases:")
 for email in edge_case_emails:
@@ -445,7 +445,7 @@ def demonstrate_merge_conflicts():
 ```python
 import asyncio
 import aiohttp
-from dev_qol_toolkit.http_utils import HTTPClient
+from devtools_py.http_utils import HTTPClient
 
 async def demonstrate_http_edge_cases():
     """Show HTTP client edge cases and error handling."""
@@ -555,7 +555,7 @@ def safe_colored_output(text, color="white"):
     
     if capabilities["supports_color"]:
         # Use colored output
-        from dev_qol_toolkit.cli_utils import colored_text
+        from devtools_py.cli_utils import colored_text
         return colored_text(text, color)
     else:
         # Fallback to plain text
@@ -565,7 +565,7 @@ def safe_colored_output(text, color="white"):
 #### Progress Bar Edge Cases
 
 ```python
-from dev_qol_toolkit.cli_utils import progress_bar
+from devtools_py.cli_utils import progress_bar
 import sys
 
 def demonstrate_progress_bar_issues():
@@ -1017,7 +1017,7 @@ def adaptive_function_behavior(features):
         # Color fallbacks
         if color and features["color_support"]:
             # Use colored output
-            from dev_qol_toolkit.cli_utils import colored_text
+            from devtools_py.cli_utils import colored_text
             message = colored_text(message, color)
         elif color:
             # Add text indicators for color
@@ -1133,4 +1133,4 @@ def demonstrate_resource_management():
         # even if an exception occurs
 ```
 
-This comprehensive guide covers the major edge cases, limitations, and workarounds for the dev-qol-toolkit. Use it as a reference when implementing robust applications that handle edge cases gracefully.
+This comprehensive guide covers the major edge cases, limitations, and workarounds for the devtools-py. Use it as a reference when implementing robust applications that handle edge cases gracefully.

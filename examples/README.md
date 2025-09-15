@@ -1,15 +1,15 @@
 # Dev QoL Toolkit - Usage Examples
 
-This directory contains practical usage examples for all utility modules in the dev-qol-toolkit package. Each example demonstrates real-world scenarios and includes edge cases and limitations.
+This directory contains practical usage examples for all utility modules in the devtools-py package. Each example demonstrates real-world scenarios and includes edge cases and limitations.
 
 ## Quick Start
 
 ```python
 # Install the package
-pip install dev-qol-toolkit
+pip install devtools-py
 
 # Import utilities
-from dev_qol_toolkit import json_utils, file_utils, string_utils
+from devtools_py import json_utils, file_utils, string_utils
 ```
 
 ## Examples by Category
@@ -55,7 +55,7 @@ All functions include proper type hints:
 
 ```python
 from typing import Dict, List, Optional
-from dev_qol_toolkit.string_utils import to_pascal_case
+from devtools_py.string_utils import to_pascal_case
 
 # Type-safe usage
 result: str = to_pascal_case("hello_world")
@@ -66,7 +66,7 @@ Many utilities have async variants:
 
 ```python
 import asyncio
-from dev_qol_toolkit.async_utils import AsyncFileManager
+from devtools_py.async_utils import AsyncFileManager
 
 async def main():
     async_file = AsyncFileManager()

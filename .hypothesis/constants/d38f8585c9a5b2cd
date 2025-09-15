@@ -1,0 +1,4 @@
+# file: /Users/lc3053/repos/dev-qol-toolkit/src/devtools_py/log_utils.py
+# hypothesis_version: 6.138.16
+
+[1000.0, '%s took %.2f ms', 'INFO', 'Returned %s -> %r', '_T', 'block', 'dev_qol_toolkit', 'utf-8']

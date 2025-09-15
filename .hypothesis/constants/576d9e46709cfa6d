@@ -1,0 +1,4 @@
+# file: /Users/lc3053/repos/dev-qol-toolkit/src/devtools_py/time_utils.py
+# hypothesis_version: 6.138.16
+
+[366, 3600, 86400, '%B %d, %Y', '%Y%m%d', '%Y%m%d%H%M', '%Y%m%d%H%M%S', '%Y-%m-%d', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%SZ', '%Y/%m/%d', '%Y/%m/%d %H:%M', '%Y/%m/%d %H:%M:%S', '%b %d, %Y', '%d %B %Y', '%d %b %Y', '%d-%m-%Y', '%d-%m-%Y %H:%M', '%d-%m-%Y %H:%M:%S', '%d/%m/%Y', '%d/%m/%Y %H:%M', '%d/%m/%Y %H:%M:%S', '%m-%d-%Y', '%m-%d-%Y %H:%M', '%m-%d-%Y %H:%M:%S', '%m/%d/%Y', '%m/%d/%Y %H:%M', '%m/%d/%Y %H:%M:%S', '*', ',', '-', '/', '0.0s', 'CDT', 'CST', 'EDT', 'EST', 'GMT', 'Invalid field values', 'MDT', 'MST', 'PDT', 'PST', 'Timer', 'UTC', 'cron_next_run', 'd', 'format_duration', 'get_timezone_offset', 'h', 'is_business_day', 'm', 'next_business_day', 'parse_date', 's']

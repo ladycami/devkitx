@@ -1,0 +1,4 @@
+# file: /Users/lc3053/repos/dev-qol-toolkit/src/devtools_py/http_utils.py
+# hypothesis_version: 6.138.16
+
+[0.25, 4.0, 15.0, 30.0, 429, 500, 502, 503, 504, 8192, '/', 'DELETE', 'GET', 'PATCH', 'POST', 'PUT', 'accept', 'application/json', 'content-type', 'wb']

@@ -3,12 +3,12 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dev-qol-toolkit"
+name = "devtools-py"
 version = "1.0.0"
 description = "Comprehensive quality-of-life utilities for Python developers including JSON, HTTP, async, security, validation, and more."
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "SerityOps Innovations", email = "info@serityops.dev" }]
+authors = [{ name = "LadyCami", email = "ladycami@users.noreply.github.com" }]
 requires-python = ">=3.10"
 dependencies = [
   "httpx>=0.27,<0.28",
@@ -46,13 +46,13 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/serityops/dev-qol-toolkit"
-Issues = "https://github.com/serityops/dev-qol-toolkit/issues"
-Documentation = "https://github.com/serityops/dev-qol-toolkit#readme"
-Repository = "https://github.com/serityops/dev-qol-toolkit.git"
+Homepage = "https://github.com/ladycami/devtools-py"
+Issues = "https://github.com/ladycami/devtools-py/issues"
+Documentation = "https://github.com/ladycami/devtools-py#readme"
+Repository = "https://github.com/ladycami/devtools-py.git"
 
 [project.scripts]
-dev-qol-toolkit = "dev_qol_toolkit.__main__:main"
+devtools-py = "devtools_py.__main__:main"
 
 [project.optional-dependencies]
 dev = [
@@ -62,13 +62,15 @@ dev = [
   "ruff>=0.5",
   "black>=24.8",
   "types-requests",
+  "build>=1.0.0",
+  "twine>=5.0.0",
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/dev_qol_toolkit", "README.md", "LICENSE"]
+include = ["src/devtools_py", "README.md", "LICENSE"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dev_qol_toolkit"]
+packages = ["src/devtools_py"]
 
 [tool.ruff]
 line-length = 100
@@ -90,4 +92,4 @@ no_implicit_optional = true
 pretty = true
 
 [tool.pytest.ini_options]
-addopts = "-q --cov=dev_qol_toolkit --cov-report=term-missing"
+addopts = "-q --cov=devtools_py --cov-report=term-missing"

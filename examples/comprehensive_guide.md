@@ -1,6 +1,6 @@
 # Dev QoL Toolkit - Comprehensive Usage Guide
 
-This guide provides practical examples and patterns for using the dev-qol-toolkit effectively in real-world projects.
+This guide provides practical examples and patterns for using the devtools-py effectively in real-world projects.
 
 ## Table of Contents
 
@@ -18,14 +18,14 @@ This guide provides practical examples and patterns for using the dev-qol-toolki
 ### Installation
 
 ```bash
-pip install dev-qol-toolkit
+pip install devtools-py
 ```
 
 ### Basic Usage
 
 ```python
 # Import utilities you need
-from dev_qol_toolkit import (
+from devtools_py import (
     json_utils, file_utils, string_utils, 
     config_utils, cli_utils, http_utils
 )
@@ -53,7 +53,7 @@ db_host = config.get("database.host", default="localhost")
 ### 1. Configuration Management Pattern
 
 ```python
-from dev_qol_toolkit.config_utils import ConfigManager
+from devtools_py.config_utils import ConfigManager
 import os
 
 class AppConfig:
@@ -82,10 +82,10 @@ config = AppConfig(os.getenv("ENVIRONMENT", "development"))
 ### 2. CLI Application Pattern
 
 ```python
-from dev_qol_toolkit.cli_utils import (
+from devtools_py.cli_utils import (
     progress_bar, colored_text, confirm_prompt, print_banner
 )
-from dev_qol_toolkit.file_utils import find_files
+from devtools_py.file_utils import find_files
 import sys
 
 def process_files_cli(directory, pattern="*.py"):
@@ -128,9 +128,9 @@ def process_files_cli(directory, pattern="*.py"):
 ### 3. Data Processing Pipeline Pattern
 
 ```python
-from dev_qol_toolkit.data_utils import deep_merge, group_by
-from dev_qol_toolkit.string_utils import normalize_whitespace, slugify
-from dev_qol_toolkit.validation_utils import Validator
+from devtools_py.data_utils import deep_merge, group_by
+from devtools_py.string_utils import normalize_whitespace, slugify
+from devtools_py.validation_utils import Validator
 
 class DataProcessor:
     def __init__(self):
@@ -187,8 +187,8 @@ class DataProcessor:
 ### 4. HTTP Client Pattern
 
 ```python
-from dev_qol_toolkit.http_utils import HTTPClient
-from dev_qol_toolkit.security_utils import generate_jwt_token
+from devtools_py.http_utils import HTTPClient
+from devtools_py.security_utils import generate_jwt_token
 import asyncio
 
 class APIClient:
@@ -233,7 +233,7 @@ async def main():
 Log Analysis Tool - Real-world example using multiple utilities
 """
 
-from dev_qol_toolkit import (
+from devtools_py import (
     file_utils, string_utils, data_utils, cli_utils, time_utils
 )
 from pathlib import Path
@@ -391,7 +391,7 @@ if __name__ == "__main__":
 Configuration Migration Tool - Convert between config formats
 """
 
-from dev_qol_toolkit import (
+from devtools_py import (
     config_utils, file_utils, string_utils, cli_utils
 )
 from pathlib import Path
@@ -512,7 +512,7 @@ if __name__ == "__main__":
 ### 1. Error Handling
 
 ```python
-from dev_qol_toolkit.cli_utils import colored_text
+from devtools_py.cli_utils import colored_text
 import sys
 
 def handle_errors_gracefully(func):
@@ -545,7 +545,7 @@ def my_cli_function():
 ### 2. Configuration Management
 
 ```python
-from dev_qol_toolkit.config_utils import ConfigManager
+from devtools_py.config_utils import ConfigManager
 from pathlib import Path
 import os
 
@@ -583,8 +583,8 @@ class ApplicationConfig:
 ### 3. Logging Integration
 
 ```python
-from dev_qol_toolkit.log_utils import setup_logging
-from dev_qol_toolkit.cli_utils import colored_text
+from devtools_py.log_utils import setup_logging
+from devtools_py.cli_utils import colored_text
 import logging
 
 def setup_application_logging(app_name, debug=False):
@@ -633,8 +633,8 @@ def setup_application_logging(app_name, debug=False):
 ### 1. Memory-Efficient File Processing
 
 ```python
-from dev_qol_toolkit.file_utils import read_file
-from dev_qol_toolkit.cli_utils import progress_bar
+from devtools_py.file_utils import read_file
+from devtools_py.cli_utils import progress_bar
 
 def process_large_files_efficiently(file_paths, chunk_size=8192):
     """Process large files without loading entirely into memory."""
@@ -656,8 +656,8 @@ def process_chunk(chunk):
 
 ```python
 import asyncio
-from dev_qol_toolkit.async_utils import gather_with_limit
-from dev_qol_toolkit.http_utils import HTTPClient
+from devtools_py.async_utils import gather_with_limit
+from devtools_py.http_utils import HTTPClient
 
 async def fetch_data_concurrently(urls, max_concurrent=10):
     """Fetch data from multiple URLs with concurrency limit."""
@@ -683,7 +683,7 @@ async def fetch_data_concurrently(urls, max_concurrent=10):
 
 ```python
 from functools import lru_cache
-from dev_qol_toolkit.file_utils import get_file_info
+from devtools_py.file_utils import get_file_info
 import time
 
 class CachedFileProcessor:
@@ -724,7 +724,7 @@ class CachedFileProcessor:
 ### Common Error Patterns
 
 ```python
-from dev_qol_toolkit.cli_utils import colored_text
+from devtools_py.cli_utils import colored_text
 import logging
 
 class ApplicationError(Exception):
@@ -782,7 +782,7 @@ with handle_application_errors(logger):
 ```python
 import unittest
 from unittest.mock import patch, mock_open
-from dev_qol_toolkit import file_utils, string_utils
+from devtools_py import file_utils, string_utils
 
 class TestStringUtils(unittest.TestCase):
     """Test string utilities."""
@@ -839,7 +839,7 @@ if __name__ == "__main__":
 import tempfile
 import unittest
 from pathlib import Path
-from dev_qol_toolkit import config_utils, file_utils
+from devtools_py import config_utils, file_utils
 
 class TestConfigIntegration(unittest.TestCase):
     """Integration tests for configuration management."""
@@ -885,16 +885,16 @@ class TestConfigIntegration(unittest.TestCase):
 ```python
 # Problem: Module not found
 try:
-    from dev_qol_toolkit import string_utils
+    from devtools_py import string_utils
 except ImportError as e:
-    print("Please install dev-qol-toolkit: pip install dev-qol-toolkit")
+    print("Please install devtools-py: pip install devtools-py")
     sys.exit(1)
 ```
 
 #### 2. File Permission Issues
 
 ```python
-from dev_qol_toolkit.file_utils import write_file
+from devtools_py.file_utils import write_file
 import os
 
 def safe_write_file(file_path, content):
@@ -912,7 +912,7 @@ def safe_write_file(file_path, content):
 #### 3. Configuration Loading Issues
 
 ```python
-from dev_qol_toolkit.config_utils import ConfigManager
+from devtools_py.config_utils import ConfigManager
 
 def load_config_safely(config_files):
     """Load configuration with fallback handling."""
@@ -937,7 +937,7 @@ def load_config_safely(config_files):
 #### 4. Memory Issues with Large Files
 
 ```python
-from dev_qol_toolkit.file_utils import read_file
+from devtools_py.file_utils import read_file
 
 def read_large_file_safely(file_path, max_size_mb=100):
     """Read file with size checking."""
@@ -964,7 +964,7 @@ def read_file_in_chunks(file_path, chunk_size=8192):
 
 ```python
 import logging
-from dev_qol_toolkit.log_utils import setup_logging
+from devtools_py.log_utils import setup_logging
 
 def enable_debug_mode():
     """Enable comprehensive debug logging."""
@@ -1005,4 +1005,4 @@ if os.getenv("DEBUG"):
         pass
 ```
 
-This comprehensive guide provides practical patterns and examples for using the dev-qol-toolkit effectively in real-world applications. Each section includes working code examples that demonstrate best practices and common use cases.
+This comprehensive guide provides practical patterns and examples for using the devtools-py effectively in real-world applications. Each section includes working code examples that demonstrate best practices and common use cases.

@@ -2,7 +2,7 @@
 """
 CLI Utilities Examples
 
-This module demonstrates practical usage of dev_qol_toolkit.cli_utils
+This module demonstrates practical usage of devtools_py.cli_utils
 including interactive prompts, progress indicators, colored output,
 and argument parsing enhancements.
 """
@@ -11,7 +11,7 @@ import time
 import sys
 from typing import List, Dict, Any, Optional
 
-from dev_qol_toolkit.cli_utils import (
+from devtools_py.cli_utils import (
     password_prompt,
     multi_select,
     progress_bar,

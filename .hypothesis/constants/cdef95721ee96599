@@ -1,0 +1,4 @@
+# file: /Users/lc3053/repos/dev-qol-toolkit/src/devtools_py/system_utils.py
+# hypothesis_version: 6.138.16
+
+[8000, 65535, 65536, 'USER', 'USERNAME', 'Windows', 'architecture', 'build', 'compiler', 'cpu_count', 'executable', 'find_executable', 'get_env_vars', 'get_free_port', 'get_python_info', 'get_system_info', 'hostname', 'implementation', 'is_admin', 'localhost', 'os_name', 'os_version', 'path', 'platform', 'prefix', 'processor', 'run_command', 'run_command_async', 'unknown', 'username', 'utf-8', 'version', 'version_info']

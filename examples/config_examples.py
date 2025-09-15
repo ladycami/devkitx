@@ -2,7 +2,7 @@
 """
 Configuration Management Examples
 
-This module demonstrates practical usage of dev_qol_toolkit.config_utils
+This module demonstrates practical usage of devtools_py.config_utils
 including loading various config formats, environment variable handling,
 and configuration validation.
 """
@@ -12,7 +12,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-from dev_qol_toolkit.config_utils import (
+from devtools_py.config_utils import (
     ConfigManager,
     load_dotenv,
     load_yaml_config,

@@ -1,4 +1,4 @@
-# Dev QoL Toolkit
+# DevTools-Py
 
 **Comprehensive quality-of-life utilities for Python developers**
 
@@ -24,13 +24,13 @@ A modern, type-safe toolkit providing essential utilities for common development
 ## Installation
 
 ```bash
-pip install dev-qol-toolkit
+pip install devtools-py
 ```
 
 ## Quick Start
 
 ```python
-from dev_qol_toolkit import json_utils, string_utils, http_utils, config_utils
+from devtools_py import json_utils, string_utils, http_utils, config_utils
 
 # JSON operations with enhanced features
 data = json_utils.load_json("config.json")
@@ -61,7 +61,7 @@ database_url = config.get("database.url", "sqlite:///default.db")
 Enhanced JSON operations with pretty printing and flattening:
 
 ```python
-from dev_qol_toolkit import json_utils
+from devtools_py import json_utils
 
 # Load and save JSON with automatic formatting
 data = json_utils.load_json("config.json")
@@ -80,7 +80,7 @@ print(json_utils.pretty_json(data, color=True))
 Cross-platform file operations with safety features:
 
 ```python
-from dev_qol_toolkit import file_utils
+from devtools_py import file_utils
 
 # Find files with glob patterns or exact names
 python_files = file_utils.find_file("*.py", "src")
@@ -101,7 +101,7 @@ if file_utils.is_writable("output.txt"):
 Comprehensive string manipulation and validation:
 
 ```python
-from dev_qol_toolkit import string_utils
+from devtools_py import string_utils
 
 # Case conversions
 string_utils.to_snake_case("CamelCase")      # "camel_case"
@@ -125,7 +125,7 @@ urls = string_utils.extract_urls("Visit https://example.com for info")
 Robust HTTP client with retry logic and async support:
 
 ```python
-from dev_qol_toolkit import http_utils
+from devtools_py import http_utils
 import asyncio
 
 # Synchronous requests with automatic retries
@@ -162,7 +162,7 @@ responses = await http_utils.async_batch_requests(requests, concurrency_limit=5)
 Multi-format configuration management:
 
 ```python
-from dev_qol_toolkit import config_utils
+from devtools_py import config_utils
 
 # Load from multiple sources with precedence
 config = config_utils.ConfigManager([
@@ -189,7 +189,7 @@ config.save("updated_config.json")
 Security and cryptographic utilities:
 
 ```python
-from dev_qol_toolkit import security_utils
+from devtools_py import security_utils
 
 # Password hashing with bcrypt
 hashed = security_utils.hash_password("my_secure_password")
@@ -215,7 +215,7 @@ clean_input = security_utils.sanitize_input("<script>alert('xss')</script>")
 Bridge between sync and async code:
 
 ```python
-from dev_qol_toolkit import async_utils
+from devtools_py import async_utils
 import asyncio
 
 # Convert sync functions to async
@@ -256,7 +256,7 @@ await async_fm.write_text("output.txt", "Hello, World!")
 Debugging and development tools:
 
 ```python
-from dev_qol_toolkit import dev_utils
+from devtools_py import dev_utils
 
 # Function timing and profiling
 @dev_utils.time_function
@@ -296,7 +296,7 @@ server.stop()
 Cross-platform system operations:
 
 ```python
-from dev_qol_toolkit import system_utils
+from devtools_py import system_utils
 
 # System information
 sys_info = system_utils.get_system_info()
@@ -323,7 +323,7 @@ free_port = system_utils.get_free_port(8000)
 Comprehensive input validation:
 
 ```python
-from dev_qol_toolkit import validation_utils
+from devtools_py import validation_utils
 
 # Schema validation
 schema = {"name": str, "age": int, "active": bool}
@@ -357,7 +357,7 @@ errors = validator.validate({"email": "test@example.com", "age": 25})
 Date and time utilities:
 
 ```python
-from dev_qol_toolkit import time_utils
+from devtools_py import time_utils
 from datetime import datetime
 
 # Flexible date parsing
@@ -393,7 +393,7 @@ print(f"Elapsed: {timer.elapsed():.2f}s")
 Rich terminal interfaces:
 
 ```python
-from dev_qol_toolkit import cli_utils
+from devtools_py import cli_utils
 
 # Interactive prompts
 password = cli_utils.password_prompt("Enter password:", confirm=True)
@@ -421,7 +421,7 @@ print(table)
 Enhanced logging setup:
 
 ```python
-from dev_qol_toolkit import log_utils
+from devtools_py import log_utils
 import logging
 
 # Quick logger setup
@@ -449,23 +449,23 @@ The toolkit also provides a command-line interface for common operations:
 
 ```bash
 # String manipulation
-dev-qol-toolkit string convert --to snake "CamelCase"
-dev-qol-toolkit string validate --email "user@example.com"
+devtools-py string convert --to snake "CamelCase"
+devtools-py string validate --email "user@example.com"
 
 # Configuration management
-dev-qol-toolkit config merge config1.json config2.yaml
+devtools-py config merge config1.json config2.yaml
 
 # Security utilities
-dev-qol-toolkit security hash --algorithm sha256 "my-data"
-dev-qol-toolkit security generate --type uuid
+devtools-py security hash --algorithm sha256 "my-data"
+devtools-py security generate --type uuid
 
 # System information
-dev-qol-toolkit system info
-dev-qol-toolkit system find-executable python
+devtools-py system info
+devtools-py system find-executable python
 
 # Time utilities
-dev-qol-toolkit time parse "2024-01-15 14:30:00"
-dev-qol-toolkit time format-duration 3661
+devtools-py time parse "2024-01-15 14:30:00"
+devtools-py time format-duration 3661
 ```
 
 ## Requirements
@@ -477,8 +477,8 @@ dev-qol-toolkit time format-duration 3661
 
 ```bash
 # Clone the repository
-git clone https://github.com/serityops/dev-qol-toolkit.git
-cd dev-qol-toolkit
+git clone https://github.com/ladycami/devtools-py.git
+cd devtools-py
 
 # Install in development mode
 pip install -e ".[dev]"

@@ -1,8 +1,7 @@
 """Tests for string_utils module."""
 
-import pytest
-from dev_qol_toolkit.string_utils import (
-    to_pascal_case, 
+from devtools_py.string_utils import (
+    to_pascal_case,
     to_kebab_case,
     validate_email,
     validate_url,
@@ -10,7 +9,7 @@ from dev_qol_toolkit.string_utils import (
     template_safe_substitute,
     normalize_whitespace,
     extract_urls,
-    truncate_text
+    truncate_text,
 )
 
 
@@ -230,18 +229,26 @@ class TestTextProcessingFunctions:
     def test_template_safe_substitute_basic(self):
         """Test basic template substitution."""
         assert template_safe_substitute("Hello $name!", name="World") == "Hello World!"
-        assert template_safe_substitute("$greeting $name", greeting="Hi", name="Alice") == "Hi Alice"
+        assert (
+            template_safe_substitute("$greeting $name", greeting="Hi", name="Alice") == "Hi Alice"
+        )
         assert template_safe_substitute("No variables here") == "No variables here"
 
     def test_template_safe_substitute_missing_vars(self):
         """Test template substitution with missing variables."""
-        assert template_safe_substitute("Hello $name and $missing", name="Bob") == "Hello Bob and $missing"
+        assert (
+            template_safe_substitute("Hello $name and $missing", name="Bob")
+            == "Hello Bob and $missing"
+        )
         assert template_safe_substitute("$missing1 and $missing2") == "$missing1 and $missing2"
 
     def test_template_safe_substitute_braces(self):
         """Test template substitution with braces."""
         assert template_safe_substitute("Hello ${name}!", name="World") == "Hello World!"
-        assert template_safe_substitute("${greeting} ${name}", greeting="Hi", name="Alice") == "Hi Alice"
+        assert (
+            template_safe_substitute("${greeting} ${name}", greeting="Hi", name="Alice")
+            == "Hi Alice"
+        )
 
     def test_template_safe_substitute_edge_cases(self):
         """Test template substitution edge cases."""
@@ -273,7 +280,7 @@ class TestTextProcessingFunctions:
         """Test basic URL extraction."""
         text = "Visit https://example.com for more info"
         assert extract_urls(text) == ["https://example.com"]
-        
+
         text = "Check http://site1.com and https://site2.org"
         assert extract_urls(text) == ["http://site1.com", "https://site2.org"]
 
