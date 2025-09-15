@@ -1,3 +1,10 @@
+"""Data manipulation utilities for the dev-qol-toolkit.
+
+This module provides utilities for data processing, transformation,
+and manipulation including case conversion, list operations, and
+dictionary utilities.
+"""
+
 from __future__ import annotations
 
 import re
@@ -9,22 +16,90 @@ _CAMEL_2 = re.compile(r"([a-z0-9])([A-Z])")
 
 
 def to_snake(name: str) -> str:
+    """Convert camelCase or PascalCase to snake_case.
+    
+    Args:
+        name: String to convert
+        
+    Returns:
+        String in snake_case format
+        
+    Examples:
+        >>> to_snake("camelCase")
+        'camel_case'
+        >>> to_snake("PascalCase")
+        'pascal_case'
+        >>> to_snake("XMLHttpRequest")
+        'xml_http_request'
+    """
     s1 = _CAMEL_1.sub(r"\1_\2", name)
     return _CAMEL_2.sub(r"\1_\2", s1).lower()
 
 
 def to_camel(name: str) -> str:
+    """Convert snake_case, kebab-case, or space-separated to camelCase.
+    
+    Args:
+        name: String to convert
+        
+    Returns:
+        String in camelCase format
+        
+    Examples:
+        >>> to_camel("snake_case")
+        'snakeCase'
+        >>> to_camel("kebab-case")
+        'kebabCase'
+        >>> to_camel("space separated")
+        'spaceSeparated'
+    """
     parts = re.split(r"[_\-\s]+", name)
     return parts[0].lower() + "".join(p.capitalize() for p in parts[1:])
 
 
 def chunk_list(lst: list[Any], size: int) -> list[list[Any]]:
+    """Split list into chunks of specified size.
+    
+    Args:
+        lst: List to split into chunks
+        size: Size of each chunk
+        
+    Returns:
+        List of chunks (sublists)
+        
+    Raises:
+        ValueError: If size is less than or equal to 0
+        
+    Examples:
+        >>> chunk_list([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5]]
+        >>> chunk_list(['a', 'b', 'c', 'd'], 3)
+        [['a', 'b', 'c'], ['d']]
+        >>> chunk_list([], 2)
+        []
+    """
     if size <= 0:
         raise ValueError("size must be > 0")
     return [lst[i : i + size] for i in range(0, len(lst), size)]
 
 
 def flatten_list(lst: list[list[Any]]) -> list[Any]:
+    """Flatten a list of lists into a single list.
+    
+    Args:
+        lst: List of lists to flatten
+        
+    Returns:
+        Flattened list containing all elements
+        
+    Examples:
+        >>> flatten_list([[1, 2], [3, 4], [5]])
+        [1, 2, 3, 4, 5]
+        >>> flatten_list([['a', 'b'], ['c']])
+        ['a', 'b', 'c']
+        >>> flatten_list([])
+        []
+    """
     out: list[Any] = []
     for sub in lst:
         out.extend(sub)
@@ -32,6 +107,25 @@ def flatten_list(lst: list[list[Any]]) -> list[Any]:
 
 
 def deep_get(d: dict, keys: list[str], default: Any = None) -> Any:
+    """Get value from nested dictionary using list of keys.
+    
+    Args:
+        d: Dictionary to search in
+        keys: List of keys representing the path to the value
+        default: Default value to return if path doesn't exist
+        
+    Returns:
+        Value at the specified path, or default if not found
+        
+    Examples:
+        >>> data = {"user": {"profile": {"name": "John"}}}
+        >>> deep_get(data, ["user", "profile", "name"])
+        'John'
+        >>> deep_get(data, ["user", "settings", "theme"], "default")
+        'default'
+        >>> deep_get(data, ["nonexistent"])
+        None
+    """
     cur: Any = d
     for k in keys:
         if not isinstance(cur, dict) or k not in cur:

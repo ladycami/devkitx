@@ -1,3 +1,9 @@
+"""JSON utilities for the dev-qol-toolkit.
+
+This module provides utilities for loading, saving, and manipulating JSON data
+with enhanced error handling and formatting options.
+"""
+
 from __future__ import annotations
 
 import json
@@ -6,12 +12,46 @@ from typing import Any, Iterable
 
 
 def load_json(path: str | Path) -> dict:
+    """Load JSON data from file.
+    
+    Args:
+        path: Path to JSON file
+        
+    Returns:
+        Parsed JSON data as dictionary
+        
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        json.JSONDecodeError: If the file contains invalid JSON
+        PermissionError: If lacking read permissions
+        
+    Examples:
+        >>> data = load_json("config.json")
+        >>> data = load_json(Path("data/settings.json"))
+    """
     p = Path(path)
     with p.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_json(data: Any, path: str | Path, *, pretty: bool = True) -> None:
+    """Save data to JSON file.
+    
+    Args:
+        data: Data to save as JSON
+        path: Path to save JSON file
+        pretty: Whether to format JSON with indentation and sorting
+        
+    Raises:
+        PermissionError: If lacking write permissions
+        OSError: If unable to create parent directories
+        TypeError: If data is not JSON serializable
+        
+    Examples:
+        >>> save_json({"name": "John", "age": 30}, "user.json")
+        >>> save_json([1, 2, 3], "numbers.json", pretty=False)
+        >>> save_json(data, Path("output/result.json"))
+    """
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", encoding="utf-8") as f:
@@ -23,6 +63,31 @@ def save_json(data: Any, path: str | Path, *, pretty: bool = True) -> None:
 
 
 def pretty_json(data: Any, *, color: bool = False) -> str:
+    """Format data as pretty-printed JSON string.
+    
+    Args:
+        data: Data to format as JSON
+        color: Whether to add syntax highlighting (requires pygments)
+        
+    Returns:
+        Pretty-formatted JSON string
+        
+    Raises:
+        TypeError: If data is not JSON serializable
+        
+    Examples:
+        >>> data = {"name": "John", "items": [1, 2, 3]}
+        >>> print(pretty_json(data))
+        {
+          "items": [
+            1,
+            2,
+            3
+          ],
+          "name": "John"
+        }
+        >>> colored = pretty_json(data, color=True)  # Adds syntax highlighting
+    """
     s = json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True)
     if not color:
         return s
@@ -38,7 +103,27 @@ def pretty_json(data: Any, *, color: bool = False) -> str:
 
 
 def detect_jsonl(path: str | Path, *, sample: int = 10) -> bool:
-    """Return True if file looks like JSON Lines (NDJSON)."""
+    """Detect if file contains JSON Lines (NDJSON) format.
+    
+    Args:
+        path: Path to file to check
+        sample: Number of lines to sample for detection
+        
+    Returns:
+        True if file appears to be JSON Lines format, False otherwise
+        
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        PermissionError: If lacking read permissions
+        
+    Examples:
+        >>> detect_jsonl("data.jsonl")
+        True
+        >>> detect_jsonl("regular.json")
+        False
+        >>> detect_jsonl("mixed.txt", sample=5)  # Check first 5 lines
+        False
+    """
     p = Path(path)
     with p.open("r", encoding="utf-8") as f:
         for i, line in enumerate(f):
@@ -55,6 +140,24 @@ def detect_jsonl(path: str | Path, *, sample: int = 10) -> bool:
 
 
 def flatten_json(obj: dict, sep: str = ".") -> dict[str, Any]:
+    """Flatten nested JSON object into dot-notation keys.
+    
+    Args:
+        obj: Dictionary to flatten
+        sep: Separator to use between nested keys
+        
+    Returns:
+        Flattened dictionary with dot-notation keys
+        
+    Examples:
+        >>> nested = {"user": {"name": "John", "details": {"age": 30}}}
+        >>> flatten_json(nested)
+        {'user.name': 'John', 'user.details.age': 30}
+        >>> flatten_json({"items": [1, 2, 3]})
+        {'items.0': 1, 'items.1': 2, 'items.2': 3}
+        >>> flatten_json(nested, sep="_")
+        {'user_name': 'John', 'user_details_age': 30}
+    """
     out: dict[str, Any] = {}
 
     def _rec(prefix: str, value: Any) -> None:
@@ -73,15 +176,30 @@ def flatten_json(obj: dict, sep: str = ".") -> dict[str, Any]:
 
 
 def unflatten_json(flat: dict[str, Any], sep: str = ".") -> dict[str, Any]:
+    """Unflatten dot-notation keys back into nested JSON object.
+    
+    Args:
+        flat: Flattened dictionary with dot-notation keys
+        sep: Separator used between nested keys
+        
+    Returns:
+        Nested dictionary structure
+        
+    Raises:
+        TypeError: If there are conflicting path types (dict vs list)
+        
+    Examples:
+        >>> flat = {'user.name': 'John', 'user.details.age': 30}
+        >>> unflatten_json(flat)
+        {'user': {'name': 'John', 'details': {'age': 30}}}
+        >>> flat = {'items.0': 1, 'items.1': 2, 'items.2': 3}
+        >>> unflatten_json(flat)
+        {'items': [1, 2, 3]}
+        >>> unflatten_json({'a_b_c': 1}, sep="_")
+        {'a': {'b': {'c': 1}}}
+    """
     root: dict[str, Any] = {}
     for k, v in flat.items():
-        parts: Iterable[str] = k.split(sep) if k else []
-        cur: Any = root
-        prev: Any = None
-        prev_key: str | None = None
-        for i, part in enumerate(parts):
-            is_last = i == len(list(parts)) - 1  # avoid re-splitting below
-        # re-split once
         parts_list = k.split(sep) if k else []
         cur = root
         for i, part in enumerate(parts_list):

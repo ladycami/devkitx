@@ -1,3 +1,9 @@
+"""Logging utilities for the dev-qol-toolkit.
+
+This module provides utilities for setting up logging, timing operations,
+and decorating functions with logging capabilities.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -15,8 +21,24 @@ def setup_logging(
     json: bool = False,
     use_loguru: bool = False,
 ) -> logging.Logger:
-    """
-    Quick logger setup for scripts/apps. Libraries should not call this by default.
+    """Set up logging configuration for applications.
+    
+    Note: Libraries should not call this function by default as it configures
+    global logging state. This is intended for application entry points.
+    
+    Args:
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        to_file: Optional file path to write logs to
+        json: Whether to format logs as JSON
+        use_loguru: Whether to use loguru library if available
+        
+    Returns:
+        Configured logger instance
+        
+    Examples:
+        >>> logger = setup_logging("DEBUG")
+        >>> logger = setup_logging("INFO", to_file="app.log")
+        >>> logger = setup_logging("INFO", json=True, use_loguru=True)
     """
     if use_loguru:
         try:
@@ -68,6 +90,24 @@ def setup_logging(
 
 @contextmanager
 def log_time(name: str = "block", logger: logging.Logger | None = None):
+    """Context manager to log execution time of a code block.
+    
+    Args:
+        name: Name to use in the log message
+        logger: Optional logger instance (uses default if None)
+        
+    Examples:
+        >>> with log_time("database_query"):
+        ...     # Some database operation
+        ...     time.sleep(0.1)
+        # Logs: "database_query took 100.23 ms"
+        
+        >>> import logging
+        >>> custom_logger = logging.getLogger("myapp")
+        >>> with log_time("api_call", custom_logger):
+        ...     # Some API call
+        ...     pass
+    """
     lg = logger or logging.getLogger("dev_qol_toolkit")
     start = time.perf_counter()
     try:
@@ -78,6 +118,29 @@ def log_time(name: str = "block", logger: logging.Logger | None = None):
 
 
 def log_calls(fn: Callable[..., _T]) -> Callable[..., _T]:
+    """Decorator to log function calls and returns at DEBUG level.
+    
+    Args:
+        fn: Function to decorate
+        
+    Returns:
+        Decorated function that logs calls and returns
+        
+    Examples:
+        >>> @log_calls
+        ... def add(a: int, b: int) -> int:
+        ...     return a + b
+        >>> result = add(2, 3)
+        # Logs at DEBUG level:
+        # "Calling add args=(2, 3) kwargs={}"
+        # "Returned add -> 5"
+        
+        >>> @log_calls
+        ... def process_data(data: list, **options) -> dict:
+        ...     return {"processed": len(data)}
+        >>> result = process_data([1, 2, 3], format="json")
+        # Logs function call with arguments and return value
+    """
     import functools
 
     logger = logging.getLogger("dev_qol_toolkit")

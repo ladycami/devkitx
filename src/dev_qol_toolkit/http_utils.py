@@ -1,3 +1,9 @@
+"""HTTP utilities for the dev-qol-toolkit.
+
+This module provides utilities for making HTTP requests with retry logic,
+async support, and convenient API client classes.
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -37,9 +43,34 @@ def api_request(
     timeout: float = 15.0,
     retries: int = 3,
 ) -> Any:
-    """
-    Sync HTTP request with retries/jitter on common transient failures.
-    Returns parsed JSON when possible else text.
+    """Make synchronous HTTP request with automatic retries.
+    
+    Automatically retries on common transient failures (429, 5xx status codes)
+    with exponential backoff. Returns parsed JSON when possible, otherwise text.
+    
+    Args:
+        method: HTTP method (GET, POST, PUT, DELETE, etc.)
+        url: Target URL
+        headers: Optional HTTP headers
+        json_body: Optional JSON body for request
+        params: Optional query parameters
+        timeout: Request timeout in seconds
+        retries: Number of retry attempts
+        
+    Returns:
+        Parsed JSON response or text content
+        
+    Raises:
+        httpx.HTTPStatusError: For HTTP error status codes (after retries)
+        httpx.RequestError: For network-related errors (after retries)
+        
+    Examples:
+        >>> response = api_request("GET", "https://api.example.com/users")
+        >>> user_data = api_request("POST", "https://api.example.com/users", 
+        ...                        json_body={"name": "John", "email": "john@example.com"})
+        >>> api_request("GET", "https://api.example.com/data", 
+        ...              headers={"Authorization": "Bearer token"}, 
+        ...              params={"page": 1, "limit": 10})
     """
     hdrs = _merge_headers({"accept": "application/json"}, headers)
     last_exc: Exception | None = None
@@ -66,25 +97,54 @@ def api_request(
 
 
 class BaseAPIClient:
+    """Synchronous API client for making HTTP requests to a base URL.
+    
+    Examples:
+        >>> client = BaseAPIClient("https://api.example.com")
+        >>> users = client.get("/users")
+        >>> new_user = client.post("/users", json_body={"name": "John"})
+        
+        >>> # With authentication headers
+        >>> client = BaseAPIClient("https://api.example.com", 
+        ...                       headers={"Authorization": "Bearer token"})
+        >>> data = client.get("/protected-endpoint")
+    """
+    
     def __init__(self, base_url: str, headers: Mapping[str, str] | None = None, timeout: float = 15.0):
+        """Initialize API client.
+        
+        Args:
+            base_url: Base URL for all requests
+            headers: Default headers to include in all requests
+            timeout: Default timeout for requests in seconds
+        """
         self.base_url = base_url.rstrip("/")
         self.headers = dict(headers or {})
         self.timeout = timeout
 
     def _url(self, path: str) -> str:
+        """Construct full URL from path."""
         return f"{self.base_url}/{path.lstrip('/')}"
 
     def get(self, path: str, **kwargs: Any) -> Any:
-        return api_request("GET", self._url(path), headers=self.headers, **kwargs)
+        """Make GET request to the specified path."""
+        return api_request("GET", self._url(path), headers=self.headers, timeout=self.timeout, **kwargs)
 
     def post(self, path: str, **kwargs: Any) -> Any:
-        return api_request("POST", self._url(path), headers=self.headers, **kwargs)
+        """Make POST request to the specified path."""
+        return api_request("POST", self._url(path), headers=self.headers, timeout=self.timeout, **kwargs)
 
     def put(self, path: str, **kwargs: Any) -> Any:
-        return api_request("PUT", self._url(path), headers=self.headers, **kwargs)
+        """Make PUT request to the specified path."""
+        return api_request("PUT", self._url(path), headers=self.headers, timeout=self.timeout, **kwargs)
 
     def delete(self, path: str, **kwargs: Any) -> Any:
-        return api_request("DELETE", self._url(path), headers=self.headers, **kwargs)
+        """Make DELETE request to the specified path."""
+        return api_request("DELETE", self._url(path), headers=self.headers, timeout=self.timeout, **kwargs)
+
+    def patch(self, path: str, **kwargs: Any) -> Any:
+        """Make PATCH request to the specified path."""
+        return api_request("PATCH", self._url(path), headers=self.headers, timeout=self.timeout, **kwargs)
 
 
 # Async helpers
