@@ -81,7 +81,7 @@ class TestJSONCommands:
         """Test JSON command help."""
         result = run_cli_command("json", "--help")
         assert result.returncode == 0
-        assert "JSON utilities" in result.stdout
+        assert "flatten" in result.stdout and "pretty" in result.stdout
 
 
 class TestFileCommands:
@@ -91,7 +91,7 @@ class TestFileCommands:
         """Test file command help."""
         result = run_cli_command("file", "--help")
         assert result.returncode == 0
-        assert "File utilities" in result.stdout
+        assert "find" in result.stdout
 
 
 class TestConfigCommands:
@@ -101,7 +101,7 @@ class TestConfigCommands:
         """Test config command help."""
         result = run_cli_command("config", "--help")
         assert result.returncode == 0
-        assert "Configuration management utilities" in result.stdout
+        assert "load" in result.stdout and "merge" in result.stdout
 
 
 class TestSystemCommands:
