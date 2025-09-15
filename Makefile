@@ -10,6 +10,7 @@ help:
 	@echo "  clean           Clean build artifacts"
 	@echo "  lint            Run linting checks (ruff, black, mypy)"
 	@echo "  test            Run test suite with coverage"
+	@echo "  test-distribution      Test package distribution and installation"
 	@echo "  validate        Run full validation checks"
 	@echo "  build           Build package (with validation)"
 	@echo "  build-skip-validation  Build package (skip validation)"
@@ -54,6 +55,9 @@ test:
 
 test-verbose:
 	python -m pytest -v --cov=devtools_py --cov-report=term-missing --cov-report=html
+
+test-distribution:
+	python scripts/test_package_distribution.py
 
 # Validation and building
 validate:
