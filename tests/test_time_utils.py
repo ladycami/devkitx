@@ -1,5 +1,6 @@
 """Tests for time_utils module."""
 
+import time
 import pytest
 from datetime import datetime, timedelta
 
@@ -331,12 +332,191 @@ class TestTimezoneAndBusinessDay:
 class TestSchedulingAndTimer:
     """Tests for scheduling and timer utilities (Task 10.3)."""
     
-    def test_cron_next_run_not_implemented(self):
-        """Test that cron_next_run raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            cron_next_run("0 0 * * *")
+    def test_cron_next_run_daily(self):
+        """Test cron expression for daily execution."""
+        # Every day at 9 AM
+        from_time = datetime(2024, 1, 15, 8, 0)  # 8 AM
+        result = cron_next_run("0 9 * * *", from_time)
+        expected = datetime(2024, 1, 15, 9, 0)  # Same day at 9 AM
+        assert result == expected
+        
+        # After 9 AM, should be next day
+        from_time = datetime(2024, 1, 15, 10, 0)  # 10 AM
+        result = cron_next_run("0 9 * * *", from_time)
+        expected = datetime(2024, 1, 16, 9, 0)  # Next day at 9 AM
+        assert result == expected
     
-    def test_timer_not_implemented(self):
-        """Test that Timer class raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            Timer()
+    def test_cron_next_run_weekdays(self):
+        """Test cron expression for weekday execution."""
+        # Every weekday at 9 AM (Monday=1, Friday=5)
+        # From Saturday, should be Monday
+        from_time = datetime(2024, 1, 13, 10, 0)  # Saturday
+        result = cron_next_run("0 9 * * 1-5", from_time)
+        expected = datetime(2024, 1, 15, 9, 0)  # Next Monday
+        assert result == expected
+        
+        # From Friday before 9 AM, should be same day
+        from_time = datetime(2024, 1, 19, 8, 0)  # Friday 8 AM
+        result = cron_next_run("0 9 * * 1-5", from_time)
+        expected = datetime(2024, 1, 19, 9, 0)  # Same Friday 9 AM
+        assert result == expected
+        
+        # From Friday after 9 AM, should be next Monday
+        from_time = datetime(2024, 1, 19, 10, 0)  # Friday 10 AM
+        result = cron_next_run("0 9 * * 1-5", from_time)
+        expected = datetime(2024, 1, 22, 9, 0)  # Next Monday
+        assert result == expected
+    
+    def test_cron_next_run_hourly(self):
+        """Test cron expression for hourly execution."""
+        # Every hour at minute 30
+        from_time = datetime(2024, 1, 15, 14, 15)  # 2:15 PM
+        result = cron_next_run("30 * * * *", from_time)
+        expected = datetime(2024, 1, 15, 14, 30)  # 2:30 PM same day
+        assert result == expected
+        
+        # After 30 minutes, should be next hour
+        from_time = datetime(2024, 1, 15, 14, 45)  # 2:45 PM
+        result = cron_next_run("30 * * * *", from_time)
+        expected = datetime(2024, 1, 15, 15, 30)  # 3:30 PM same day
+        assert result == expected
+    
+    def test_cron_next_run_specific_time(self):
+        """Test cron expression for specific time."""
+        # Every day at 2:30 PM
+        from_time = datetime(2024, 1, 15, 10, 0)  # 10 AM
+        result = cron_next_run("30 14 * * *", from_time)
+        expected = datetime(2024, 1, 15, 14, 30)  # Same day 2:30 PM
+        assert result == expected
+    
+    def test_cron_next_run_multiple_values(self):
+        """Test cron expression with multiple values."""
+        # At 9 AM and 5 PM every day
+        from_time = datetime(2024, 1, 15, 12, 0)  # Noon
+        result = cron_next_run("0 9,17 * * *", from_time)
+        expected = datetime(2024, 1, 15, 17, 0)  # Same day 5 PM
+        assert result == expected
+    
+    def test_cron_next_run_step_values(self):
+        """Test cron expression with step values."""
+        # Every 15 minutes
+        from_time = datetime(2024, 1, 15, 14, 10)  # 2:10 PM
+        result = cron_next_run("*/15 * * * *", from_time)
+        expected = datetime(2024, 1, 15, 14, 15)  # 2:15 PM same day
+        assert result == expected
+    
+    def test_cron_next_run_default_from_time(self):
+        """Test cron expression with default from_time (now)."""
+        # Should not raise an error and return a datetime
+        result = cron_next_run("0 9 * * *")
+        assert isinstance(result, datetime)
+    
+    def test_cron_next_run_invalid_expression(self):
+        """Test invalid cron expressions raise ValueError."""
+        # Too few parts
+        with pytest.raises(ValueError, match="must have 5 parts"):
+            cron_next_run("0 9 * *")
+        
+        # Too many parts
+        with pytest.raises(ValueError, match="must have 5 parts"):
+            cron_next_run("0 9 * * * *")
+        
+        # Invalid values
+        with pytest.raises(ValueError, match="Invalid cron expression"):
+            cron_next_run("60 9 * * *")  # Invalid minute
+    
+    def test_timer_basic_usage(self):
+        """Test basic timer usage."""
+        timer = Timer()
+        
+        # Timer should not be started initially
+        with pytest.raises(RuntimeError, match="Timer was not started"):
+            timer.elapsed()
+        
+        # Start timer
+        timer.start()
+        
+        # Should be able to get elapsed time
+        elapsed1 = timer.elapsed()
+        assert elapsed1 >= 0
+        
+        # Wait a bit and check elapsed time increased
+        time.sleep(0.01)
+        elapsed2 = timer.elapsed()
+        assert elapsed2 > elapsed1
+        
+        # Stop timer
+        final_elapsed = timer.stop()
+        assert final_elapsed >= elapsed2
+        
+        # Elapsed should remain the same after stopping
+        assert timer.elapsed() == final_elapsed
+    
+    def test_timer_start_already_running(self):
+        """Test starting timer when already running raises error."""
+        timer = Timer()
+        timer.start()
+        
+        with pytest.raises(RuntimeError, match="Timer is already running"):
+            timer.start()
+    
+    def test_timer_stop_not_started(self):
+        """Test stopping timer that was not started raises error."""
+        timer = Timer()
+        
+        with pytest.raises(RuntimeError, match="Timer was not started"):
+            timer.stop()
+    
+    def test_timer_reset(self):
+        """Test timer reset functionality."""
+        timer = Timer()
+        timer.start()
+        time.sleep(0.01)
+        timer.stop()
+        
+        # Reset should clear the timer
+        timer.reset()
+        
+        with pytest.raises(RuntimeError, match="Timer was not started"):
+            timer.elapsed()
+    
+    def test_timer_restart(self):
+        """Test timer restart functionality."""
+        timer = Timer()
+        timer.start()
+        time.sleep(0.01)
+        timer.stop()
+        
+        # Restart should reset and start again
+        timer.restart()
+        
+        # Should be able to get elapsed time
+        elapsed = timer.elapsed()
+        assert elapsed >= 0
+        assert elapsed < 0.1  # Should be small since we just restarted
+    
+    def test_timer_context_manager(self):
+        """Test timer as context manager."""
+        with Timer() as timer:
+            time.sleep(0.01)
+            elapsed_during = timer.elapsed()
+            assert elapsed_during > 0
+        
+        # Timer should be stopped after context
+        elapsed_after = timer.elapsed()
+        assert elapsed_after >= elapsed_during
+    
+    def test_timer_context_manager_with_exception(self):
+        """Test timer context manager handles exceptions."""
+        timer = None
+        try:
+            with Timer() as timer:
+                time.sleep(0.01)
+                raise ValueError("Test exception")
+        except ValueError:
+            pass
+        
+        # Timer should still be stopped even with exception
+        assert timer is not None
+        elapsed = timer.elapsed()
+        assert elapsed > 0

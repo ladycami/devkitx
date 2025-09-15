@@ -4,6 +4,7 @@ This module provides utilities for date parsing, formatting, timezone handling,
 business day calculations, and scheduling.
 """
 
+import time
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -247,44 +248,181 @@ def next_business_day(date: datetime) -> datetime:
 def cron_next_run(cron_expr: str, from_time: datetime | None = None) -> datetime:
     """Calculate next run time for cron expression.
     
+    This is a simplified cron parser that supports basic cron expressions.
+    Format: "minute hour day_of_month month day_of_week"
+    
     Args:
-        cron_expr: Cron expression
+        cron_expr: Cron expression (e.g., "0 9 * * 1-5" for 9 AM on weekdays)
         from_time: Starting time, defaults to now
         
     Returns:
         Next scheduled run time
+        
+    Raises:
+        ValueError: If cron expression is invalid
+        
+    Examples:
+        >>> # Every day at 9 AM
+        >>> cron_next_run("0 9 * * *", datetime(2024, 1, 15, 8, 0))
+        datetime.datetime(2024, 1, 15, 9, 0)
+        >>> # Every weekday at 9 AM
+        >>> cron_next_run("0 9 * * 1-5", datetime(2024, 1, 13, 10, 0))  # Saturday
+        datetime.datetime(2024, 1, 15, 9, 0)  # Next Monday
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 10.3")
+    if from_time is None:
+        from_time = datetime.now()
+    
+    # Parse cron expression
+    parts = cron_expr.strip().split()
+    if len(parts) != 5:
+        raise ValueError("Cron expression must have 5 parts: minute hour day_of_month month day_of_week")
+    
+    minute_expr, hour_expr, day_expr, month_expr, dow_expr = parts
+    
+    def parse_field(expr: str, min_val: int, max_val: int) -> set[int]:
+        """Parse a single cron field."""
+        if expr == "*":
+            return set(range(min_val, max_val + 1))
+        
+        values = set()
+        for part in expr.split(","):
+            if "-" in part:
+                start, end = part.split("-", 1)
+                values.update(range(int(start), int(end) + 1))
+            elif "/" in part:
+                range_part, step = part.split("/", 1)
+                if range_part == "*":
+                    base_values = set(range(min_val, max_val + 1))
+                else:
+                    base_values = parse_field(range_part, min_val, max_val)
+                values.update(v for v in base_values if (v - min_val) % int(step) == 0)
+            else:
+                values.add(int(part))
+        
+        return {v for v in values if min_val <= v <= max_val}
+    
+    try:
+        minutes = parse_field(minute_expr, 0, 59)
+        hours = parse_field(hour_expr, 0, 23)
+        days = parse_field(day_expr, 1, 31)
+        months = parse_field(month_expr, 1, 12)
+        # Parse day of week (cron: Sunday=0, Monday=1, ..., Saturday=6)
+        # Python weekday(): Monday=0, Tuesday=1, ..., Sunday=6
+        dow_raw = parse_field(dow_expr, 0, 7)
+        # Convert cron weekday to Python weekday
+        days_of_week = set()
+        for d in dow_raw:
+            if d == 0 or d == 7:  # Sunday in cron
+                days_of_week.add(6)  # Sunday in Python
+            else:  # Monday-Saturday in cron (1-6)
+                days_of_week.add(d - 1)  # Monday-Saturday in Python (0-5)
+        
+        # Validate that we have valid values
+        if not minutes or not hours or not days or not months or not days_of_week:
+            raise ValueError("Invalid field values")
+            
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Invalid cron expression '{cron_expr}': {e}")
+    
+    # Start from the next minute
+    current = from_time.replace(second=0, microsecond=0) + timedelta(minutes=1)
+    
+    # Search for next valid time (limit to avoid infinite loops)
+    for _ in range(366 * 24 * 60):  # Max 1 year of minutes
+        if (current.minute in minutes and
+            current.hour in hours and
+            current.day in days and
+            current.month in months and
+            current.weekday() in days_of_week):
+            return current
+        
+        current += timedelta(minutes=1)
+    
+    raise ValueError(f"Could not find next run time for cron expression '{cron_expr}'")
 
 
 class Timer:
-    """Simple timer for measuring elapsed time."""
+    """Simple timer for measuring elapsed time.
+    
+    Examples:
+        >>> timer = Timer()
+        >>> timer.start()
+        >>> # ... do some work ...
+        >>> elapsed = timer.stop()
+        >>> print(f"Operation took {elapsed:.2f} seconds")
+        
+        >>> # Or use as context manager
+        >>> with Timer() as timer:
+        ...     # ... do some work ...
+        ...     pass
+        >>> print(f"Operation took {timer.elapsed():.2f} seconds")
+    """
     
     def __init__(self) -> None:
         """Initialize timer."""
-        # Placeholder implementation
-        raise NotImplementedError("Class will be implemented in task 10.3")
+        self._start_time: float | None = None
+        self._end_time: float | None = None
     
     def start(self) -> None:
-        """Start the timer."""
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 10.3")
+        """Start the timer.
+        
+        Raises:
+            RuntimeError: If timer is already running
+        """
+        if self._start_time is not None and self._end_time is None:
+            raise RuntimeError("Timer is already running")
+        
+        self._start_time = time.perf_counter()
+        self._end_time = None
     
     def stop(self) -> float:
         """Stop the timer and return elapsed time.
         
         Returns:
             Elapsed time in seconds
+            
+        Raises:
+            RuntimeError: If timer was not started
         """
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 10.3")
+        if self._start_time is None:
+            raise RuntimeError("Timer was not started")
+        
+        if self._end_time is None:
+            self._end_time = time.perf_counter()
+        
+        return self._end_time - self._start_time
     
     def elapsed(self) -> float:
         """Get elapsed time without stopping timer.
         
         Returns:
             Elapsed time in seconds
+            
+        Raises:
+            RuntimeError: If timer was not started
         """
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 10.3")
+        if self._start_time is None:
+            raise RuntimeError("Timer was not started")
+        
+        end_time = self._end_time if self._end_time is not None else time.perf_counter()
+        return end_time - self._start_time
+    
+    def reset(self) -> None:
+        """Reset the timer to initial state."""
+        self._start_time = None
+        self._end_time = None
+    
+    def restart(self) -> None:
+        """Restart the timer (reset and start)."""
+        self.reset()
+        self.start()
+    
+    def __enter__(self) -> "Timer":
+        """Context manager entry."""
+        self.start()
+        return self
+    
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Context manager exit."""
+        if self._end_time is None:
+            self.stop()
