@@ -11,6 +11,8 @@ from unittest.mock import patch
 import pytest
 
 from dev_qol_toolkit.dev_utils import (
+    MockHTTPServer,
+    benchmark_functions,
     generate_test_data,
     pretty_print_object,
     profile_memory,
@@ -363,3 +365,192 @@ class TestGenerateTestData:
         data = generate_test_data(schema, count=0)
         
         assert data == []
+
+
+class TestBenchmarkFunctions:
+    """Test cases for benchmark_functions function."""
+
+    def test_benchmark_single_function(self):
+        """Test benchmarking a single function."""
+        def test_func():
+            return sum([1, 2, 3, 4, 5])
+
+        results = benchmark_functions(test_func, iterations=10)
+        
+        assert len(results) == 1
+        assert "test_func" in results
+        assert isinstance(results["test_func"], float)
+        assert results["test_func"] > 0
+
+    def test_benchmark_multiple_functions(self):
+        """Test benchmarking multiple functions."""
+        def fast_func():
+            return 1 + 1
+
+        def slow_func():
+            time.sleep(0.001)  # Small delay
+            return 2 + 2
+
+        results = benchmark_functions(fast_func, slow_func, iterations=5)
+        
+        assert len(results) == 2
+        assert "fast_func" in results
+        assert "slow_func" in results
+        
+        # Slow function should take longer (though this might be flaky)
+        assert results["slow_func"] > results["fast_func"]
+
+    def test_benchmark_with_different_iterations(self):
+        """Test benchmarking with different iteration counts."""
+        def simple_func():
+            return len([1, 2, 3])
+
+        results_few = benchmark_functions(simple_func, iterations=5)
+        results_many = benchmark_functions(simple_func, iterations=50)
+        
+        # Both should have the same function
+        assert "simple_func" in results_few
+        assert "simple_func" in results_many
+        
+        # Results should be positive numbers
+        assert results_few["simple_func"] > 0
+        assert results_many["simple_func"] > 0
+
+    def test_benchmark_function_with_exception(self):
+        """Test that benchmark handles functions that raise exceptions."""
+        def failing_func():
+            raise ValueError("Test error")
+
+        # Should propagate the exception
+        with pytest.raises(ValueError, match="Test error"):
+            benchmark_functions(failing_func, iterations=1)
+
+    def test_benchmark_preserves_function_names(self):
+        """Test that benchmark uses actual function names."""
+        def custom_named_function():
+            return "result"
+
+        results = benchmark_functions(custom_named_function, iterations=3)
+        
+        assert "custom_named_function" in results
+
+
+class TestMockHTTPServer:
+    """Test cases for MockHTTPServer class."""
+
+    def test_server_initialization(self):
+        """Test server initialization."""
+        responses = {"/test": {"message": "hello"}}
+        server = MockHTTPServer(responses)
+        
+        assert server.responses == responses
+        assert server.server is None
+        assert server.thread is None
+        assert server.port is None
+
+    def test_server_start_and_stop(self):
+        """Test starting and stopping the server."""
+        responses = {"/api/test": {"status": "ok"}}
+        server = MockHTTPServer(responses)
+        
+        # Start server
+        url = server.start()
+        assert url.startswith("http://localhost:")
+        assert server.server is not None
+        assert server.thread is not None
+        assert server.port is not None
+        
+        # Stop server
+        server.stop()
+        assert server.server is None
+        assert server.thread is None
+        assert server.port is None
+
+    def test_server_double_start_raises_error(self):
+        """Test that starting an already running server raises an error."""
+        responses = {"/test": {"data": "value"}}
+        server = MockHTTPServer(responses)
+        
+        server.start()
+        
+        with pytest.raises(RuntimeError, match="Server is already running"):
+            server.start()
+        
+        server.stop()
+
+    def test_server_stop_when_not_running(self):
+        """Test that stopping a non-running server doesn't raise an error."""
+        responses = {"/test": {"data": "value"}}
+        server = MockHTTPServer(responses)
+        
+        # Should not raise an error
+        server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_http_requests(self):
+        """Test making HTTP requests to the mock server."""
+        import httpx
+        
+        responses = {
+            "/api/users": {"users": [{"id": 1, "name": "John"}]},
+            "/api/status": {"status": "running"}
+        }
+        server = MockHTTPServer(responses)
+        
+        try:
+            url = server.start()
+            
+            # Test GET request to existing endpoint
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{url}/api/users")
+                assert response.status_code == 200
+                data = response.json()
+                assert data == {"users": [{"id": 1, "name": "John"}]}
+                
+                # Test GET request to another endpoint
+                response = await client.get(f"{url}/api/status")
+                assert response.status_code == 200
+                data = response.json()
+                assert data == {"status": "running"}
+                
+                # Test GET request to non-existent endpoint
+                response = await client.get(f"{url}/api/nonexistent")
+                assert response.status_code == 404
+                data = response.json()
+                assert data == {"error": "Not found"}
+        
+        finally:
+            server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_post_requests(self):
+        """Test POST requests to the mock server."""
+        import httpx
+        
+        responses = {
+            "/api/create": {"id": 123, "created": True}
+        }
+        server = MockHTTPServer(responses)
+        
+        try:
+            url = server.start()
+            
+            async with httpx.AsyncClient() as client:
+                # Test POST request
+                response = await client.post(f"{url}/api/create", json={"name": "test"})
+                assert response.status_code == 200
+                data = response.json()
+                assert data == {"id": 123, "created": True}
+        
+        finally:
+            server.stop()
+
+    def test_server_with_string_responses(self):
+        """Test server with non-dict responses."""
+        responses = {
+            "/api/simple": "simple string response"
+        }
+        server = MockHTTPServer(responses)
+        
+        # Should initialize without error
+        assert server.responses == responses

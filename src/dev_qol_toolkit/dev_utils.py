@@ -8,10 +8,13 @@ import functools
 import json
 import random
 import string
+import threading
 import time
 import tracemalloc
 from datetime import datetime, timedelta
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Callable, TypeVar
+from urllib.parse import parse_qs, urlparse
 
 T = TypeVar("T")
 
@@ -242,13 +245,53 @@ def benchmark_functions(*funcs: Callable[[], Any], iterations: int = 1000) -> di
         
     Returns:
         Dictionary mapping function names to average execution times
+        
+    Example:
+        >>> def fast_func():
+        ...     return sum([1, 2, 3])
+        >>> def slow_func():
+        ...     return sum(range(100))
+        >>> results = benchmark_functions(fast_func, slow_func, iterations=100)
+        >>> len(results)
+        2
+        >>> 'fast_func' in results
+        True
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 8.3")
+    results = {}
+    
+    for func in funcs:
+        total_time = 0.0
+        
+        # Warm up run
+        func()
+        
+        # Benchmark runs
+        for _ in range(iterations):
+            start_time = time.perf_counter()
+            func()
+            end_time = time.perf_counter()
+            total_time += (end_time - start_time)
+        
+        # Calculate average time
+        average_time = total_time / iterations
+        results[func.__name__] = average_time
+    
+    return results
 
 
 class MockHTTPServer:
-    """Mock HTTP server for testing."""
+    """Mock HTTP server for testing.
+    
+    Example:
+        >>> responses = {
+        ...     "/api/users": {"users": [{"id": 1, "name": "John"}]},
+        ...     "/api/status": {"status": "ok"}
+        ... }
+        >>> server = MockHTTPServer(responses)
+        >>> url = server.start()
+        >>> # Make requests to url + "/api/users"
+        >>> server.stop()
+    """
     
     def __init__(self, responses: dict[str, Any]) -> None:
         """Initialize mock server with predefined responses.
@@ -256,8 +299,72 @@ class MockHTTPServer:
         Args:
             responses: Dictionary mapping endpoints to responses
         """
-        # Placeholder implementation
-        raise NotImplementedError("Class will be implemented in task 8.3")
+        self.responses = responses
+        self.server = None
+        self.thread = None
+        self.port = None
+    
+    def _create_handler(self):
+        """Create a request handler class with access to responses."""
+        responses = self.responses
+        
+        class MockRequestHandler(BaseHTTPRequestHandler):
+            def log_message(self, format, *args):
+                # Suppress default logging
+                pass
+            
+            def do_GET(self):
+                """Handle GET requests."""
+                parsed_url = urlparse(self.path)
+                path = parsed_url.path
+                
+                if path in responses:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    
+                    response_data = responses[path]
+                    if isinstance(response_data, dict):
+                        response_json = json.dumps(response_data)
+                    else:
+                        response_json = str(response_data)
+                    
+                    self.wfile.write(response_json.encode('utf-8'))
+                else:
+                    self.send_response(404)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "Not found"}')
+            
+            def do_POST(self):
+                """Handle POST requests."""
+                parsed_url = urlparse(self.path)
+                path = parsed_url.path
+                
+                # Read the request body (even if we don't use it)
+                content_length = int(self.headers.get('Content-Length', 0))
+                if content_length > 0:
+                    self.rfile.read(content_length)
+                
+                if path in responses:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    
+                    response_data = responses[path]
+                    if isinstance(response_data, dict):
+                        response_json = json.dumps(response_data)
+                    else:
+                        response_json = str(response_data)
+                    
+                    self.wfile.write(response_json.encode('utf-8'))
+                else:
+                    self.send_response(404)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "Not found"}')
+        
+        return MockRequestHandler
     
     def start(self) -> str:
         """Start the mock server.
@@ -265,10 +372,29 @@ class MockHTTPServer:
         Returns:
             Server URL
         """
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 8.3")
+        if self.server is not None:
+            raise RuntimeError("Server is already running")
+        
+        # Find an available port
+        self.server = HTTPServer(('localhost', 0), self._create_handler())
+        self.port = self.server.server_address[1]
+        
+        # Start server in a separate thread
+        self.thread = threading.Thread(target=self.server.serve_forever)
+        self.thread.daemon = True
+        self.thread.start()
+        
+        return f"http://localhost:{self.port}"
     
     def stop(self) -> None:
         """Stop the mock server."""
-        # Placeholder implementation
-        raise NotImplementedError("Method will be implemented in task 8.3")
+        if self.server is not None:
+            self.server.shutdown()
+            self.server.server_close()
+            self.server = None
+        
+        if self.thread is not None:
+            self.thread.join(timeout=1.0)
+            self.thread = None
+        
+        self.port = None
