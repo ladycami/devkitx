@@ -25,9 +25,32 @@ def validate_schema(data: dict[str, Any], schema: dict[str, type]) -> list[str]:
         
     Returns:
         List of validation error messages
+        
+    Example:
+        >>> schema = {"name": str, "age": int, "active": bool}
+        >>> data = {"name": "John", "age": 30, "active": True}
+        >>> validate_schema(data, schema)
+        []
+        >>> data = {"name": "John", "age": "30", "active": True}
+        >>> validate_schema(data, schema)
+        ['Field "age": expected int, got str']
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 11.1")
+    errors = []
+    
+    # Check for missing required fields
+    for field, expected_type in schema.items():
+        if field not in data:
+            errors.append(f'Missing required field "{field}"')
+            continue
+            
+        # Check type
+        value = data[field]
+        if not isinstance(value, expected_type):
+            actual_type = type(value).__name__
+            expected_type_name = expected_type.__name__
+            errors.append(f'Field "{field}": expected {expected_type_name}, got {actual_type}')
+    
+    return errors
 
 
 def validate_range(value: int | float, min_val: int | float, max_val: int | float) -> bool:
@@ -40,9 +63,25 @@ def validate_range(value: int | float, min_val: int | float, max_val: int | floa
         
     Returns:
         True if value is in range, False otherwise
+        
+    Example:
+        >>> validate_range(5, 1, 10)
+        True
+        >>> validate_range(15, 1, 10)
+        False
+        >>> validate_range(0, 1, 10)
+        False
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 11.1")
+    if not isinstance(value, (int, float)):
+        return False
+    
+    if not isinstance(min_val, (int, float)) or not isinstance(max_val, (int, float)):
+        return False
+        
+    if min_val > max_val:
+        return False
+        
+    return min_val <= value <= max_val
 
 
 def validate_length(text: str, min_len: int = 0, max_len: int | None = None) -> bool:
@@ -55,9 +94,38 @@ def validate_length(text: str, min_len: int = 0, max_len: int | None = None) -> 
         
     Returns:
         True if length is valid, False otherwise
+        
+    Example:
+        >>> validate_length("hello", 3, 10)
+        True
+        >>> validate_length("hi", 3, 10)
+        False
+        >>> validate_length("hello world!", 3, 10)
+        False
+        >>> validate_length("hello", 3)  # No max limit
+        True
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 11.1")
+    if not isinstance(text, str):
+        return False
+        
+    if not isinstance(min_len, int) or min_len < 0:
+        return False
+        
+    if max_len is not None and (not isinstance(max_len, int) or max_len < 0):
+        return False
+        
+    if max_len is not None and min_len > max_len:
+        return False
+    
+    text_len = len(text)
+    
+    if text_len < min_len:
+        return False
+        
+    if max_len is not None and text_len > max_len:
+        return False
+        
+    return True
 
 
 def validate_regex(text: str, pattern: str) -> bool:
