@@ -9,6 +9,10 @@ import secrets
 import uuid
 import hashlib
 import base64
+import jwt
+import re
+import html
+import time
 from typing import Any
 
 __all__ = [
@@ -182,43 +186,139 @@ def hash_data(data: bytes | str, algorithm: str = "sha256") -> str:
 
 
 def generate_jwt_token(payload: dict[str, Any], secret: str, expires_in: int = 3600) -> str:
-    """Generate JWT token.
+    """Generate JWT token with expiration.
     
     Args:
-        payload: Token payload
-        secret: Secret key for signing
-        expires_in: Token expiration time in seconds
+        payload: Token payload data
+        secret: Secret key for signing the token
+        expires_in: Token expiration time in seconds (default: 3600 = 1 hour)
         
     Returns:
         JWT token string
+        
+    Example:
+        >>> payload = {"user_id": 123, "role": "admin"}
+        >>> secret = "my-secret-key"
+        >>> token = generate_jwt_token(payload, secret, 3600)
+        >>> len(token.split('.')) == 3  # JWT has 3 parts
+        True
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 9.3")
+    if not isinstance(payload, dict):
+        raise TypeError("Payload must be a dictionary")
+    
+    if not isinstance(secret, str):
+        raise TypeError("Secret must be a string")
+    
+    if not secret:
+        raise ValueError("Secret cannot be empty")
+    
+    if not isinstance(expires_in, int):
+        raise TypeError("expires_in must be an integer")
+    
+    if expires_in <= 0:
+        raise ValueError("expires_in must be positive")
+    
+    # Create a copy of payload to avoid modifying the original
+    token_payload = payload.copy()
+    
+    # Add standard JWT claims
+    current_time = int(time.time())
+    token_payload.update({
+        'iat': current_time,  # Issued at
+        'exp': current_time + expires_in,  # Expiration time
+    })
+    
+    # Generate and return JWT token
+    return jwt.encode(token_payload, secret, algorithm='HS256')
 
 
 def verify_jwt_token(token: str, secret: str) -> dict[str, Any] | None:
     """Verify and decode JWT token.
     
     Args:
-        token: JWT token to verify
+        token: JWT token string to verify
         secret: Secret key for verification
         
     Returns:
-        Decoded payload or None if invalid
+        Decoded payload dictionary if valid, None if invalid or expired
+        
+    Example:
+        >>> payload = {"user_id": 123}
+        >>> secret = "my-secret-key"
+        >>> token = generate_jwt_token(payload, secret, 3600)
+        >>> decoded = verify_jwt_token(token, secret)
+        >>> decoded["user_id"] == 123
+        True
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 9.3")
+    if not isinstance(token, str):
+        raise TypeError("Token must be a string")
+    
+    if not isinstance(secret, str):
+        raise TypeError("Secret must be a string")
+    
+    if not token:
+        raise ValueError("Token cannot be empty")
+    
+    if not secret:
+        raise ValueError("Secret cannot be empty")
+    
+    try:
+        # Decode and verify the token
+        decoded_payload = jwt.decode(token, secret, algorithms=['HS256'])
+        return decoded_payload
+    except jwt.ExpiredSignatureError:
+        # Token has expired
+        return None
+    except jwt.InvalidTokenError:
+        # Token is invalid (malformed, wrong signature, etc.)
+        return None
 
 
 def sanitize_input(text: str, allowed_chars: str | None = None) -> str:
     """Sanitize user input by removing/escaping dangerous characters.
     
+    This function provides basic input sanitization by:
+    1. HTML escaping dangerous characters
+    2. Removing or filtering characters based on allowed_chars
+    3. Normalizing whitespace
+    
     Args:
         text: Input text to sanitize
-        allowed_chars: Optional string of allowed characters
+        allowed_chars: Optional regex pattern of allowed characters.
+                      If provided, only these characters will be kept.
         
     Returns:
-        Sanitized text
+        Sanitized text string
+        
+    Example:
+        >>> sanitize_input("<script>alert('xss')</script>")
+        '&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;'
+        >>> sanitize_input("Hello123!", r"[a-zA-Z0-9]")
+        'Hello123'
+        >>> sanitize_input("  multiple   spaces  ")
+        'multiple spaces'
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 9.3")
+    if not isinstance(text, str):
+        raise TypeError("Text must be a string")
+    
+    if allowed_chars is not None and not isinstance(allowed_chars, str):
+        raise TypeError("allowed_chars must be a string or None")
+    
+    # Start with the input text
+    sanitized = text
+    
+    # HTML escape dangerous characters
+    sanitized = html.escape(sanitized, quote=True)
+    
+    # If allowed_chars pattern is provided, filter characters
+    if allowed_chars is not None:
+        try:
+            # Keep only characters that match the allowed pattern
+            sanitized = re.sub(f'[^{allowed_chars}]', '', sanitized)
+        except re.error:
+            raise ValueError(f"Invalid regex pattern in allowed_chars: {allowed_chars}")
+    
+    # Normalize whitespace (collapse multiple spaces into single spaces)
+    sanitized = re.sub(r'\s+', ' ', sanitized).strip()
+    
+    return sanitized
