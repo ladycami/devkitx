@@ -1,14 +1,21 @@
 """Tests for dev_utils module."""
 
 import io
+import json
 import sys
 import time
 from contextlib import redirect_stdout
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
 
-from dev_qol_toolkit.dev_utils import profile_memory, time_function
+from dev_qol_toolkit.dev_utils import (
+    generate_test_data,
+    pretty_print_object,
+    profile_memory,
+    time_function,
+)
 
 
 class TestTimeFunctionDecorator:
@@ -186,3 +193,173 @@ class TestDecoratorCombination:
         # Should have both timing and memory output
         assert "combined_func took" in output
         assert "combined_func memory usage" in output
+
+
+class TestPrettyPrintObject:
+    """Test cases for pretty_print_object function."""
+
+    def test_pretty_print_simple_dict(self):
+        """Test pretty printing a simple dictionary."""
+        data = {"name": "John", "age": 30}
+        result = pretty_print_object(data)
+        
+        # Should be valid JSON
+        parsed = json.loads(result)
+        assert parsed == data
+        
+        # Should be formatted (contain newlines)
+        assert "\n" in result
+
+    def test_pretty_print_nested_dict(self):
+        """Test pretty printing nested dictionary within depth limit."""
+        data = {
+            "user": {
+                "name": "John",
+                "details": {
+                    "city": "NYC",
+                    "country": "USA"
+                }
+            }
+        }
+        result = pretty_print_object(data, max_depth=3)
+        
+        # Should preserve all data within depth limit
+        parsed = json.loads(result)
+        assert parsed == data
+
+    def test_pretty_print_depth_limit(self):
+        """Test that depth limit truncates deep nesting."""
+        data = {
+            "level1": {
+                "level2": {
+                    "level3": {
+                        "level4": "too deep"
+                    }
+                }
+            }
+        }
+        result = pretty_print_object(data, max_depth=2)
+        
+        # Should truncate at max_depth
+        assert "too deep" not in result
+        assert "<dict with" in result
+
+    def test_pretty_print_list(self):
+        """Test pretty printing lists."""
+        data = [1, 2, {"nested": "value"}]
+        result = pretty_print_object(data)
+        
+        parsed = json.loads(result)
+        assert parsed == data
+
+    def test_pretty_print_complex_types(self):
+        """Test pretty printing with non-JSON serializable types."""
+        class CustomClass:
+            def __init__(self, value):
+                self.value = value
+            
+            def __repr__(self):
+                return f"CustomClass({self.value})"
+        
+        data = {"custom": CustomClass(42)}
+        result = pretty_print_object(data)
+        
+        # Should handle non-serializable objects gracefully
+        assert "CustomClass(42)" in result
+
+    def test_pretty_print_empty_containers(self):
+        """Test pretty printing empty containers."""
+        data = {"empty_dict": {}, "empty_list": [], "empty_str": ""}
+        result = pretty_print_object(data)
+        
+        parsed = json.loads(result)
+        assert parsed == data
+
+
+class TestGenerateTestData:
+    """Test cases for generate_test_data function."""
+
+    def test_generate_basic_types(self):
+        """Test generating data for basic types."""
+        schema = {
+            "name": str,
+            "age": int,
+            "height": float,
+            "active": bool
+        }
+        
+        data = generate_test_data(schema, count=5)
+        
+        assert len(data) == 5
+        for record in data:
+            assert isinstance(record["name"], str)
+            assert isinstance(record["age"], int)
+            assert isinstance(record["height"], float)
+            assert isinstance(record["active"], bool)
+
+    def test_generate_string_data(self):
+        """Test string generation properties."""
+        schema = {"text": str}
+        data = generate_test_data(schema, count=10)
+        
+        # All strings should be different lengths (with high probability)
+        lengths = [len(record["text"]) for record in data]
+        assert min(lengths) >= 5
+        assert max(lengths) <= 15
+
+    def test_generate_numeric_data(self):
+        """Test numeric data generation."""
+        schema = {"number": int, "decimal": float}
+        data = generate_test_data(schema, count=10)
+        
+        for record in data:
+            assert 1 <= record["number"] <= 1000
+            assert 0.0 <= record["decimal"] <= 1000.0
+
+    def test_generate_datetime_data(self):
+        """Test datetime generation."""
+        schema = {"created_at": datetime}
+        data = generate_test_data(schema, count=5)
+        
+        for record in data:
+            assert isinstance(record["created_at"], datetime)
+            # Should be within reasonable range
+            assert record["created_at"].year >= 2023
+
+    def test_generate_collection_data(self):
+        """Test list and dict generation."""
+        schema = {"tags": list, "metadata": dict}
+        data = generate_test_data(schema, count=3)
+        
+        for record in data:
+            assert isinstance(record["tags"], list)
+            assert isinstance(record["metadata"], dict)
+            assert 1 <= len(record["tags"]) <= 5
+            assert 1 <= len(record["metadata"]) <= 3
+
+    def test_generate_unknown_type(self):
+        """Test handling of unknown types."""
+        class CustomType:
+            pass
+        
+        schema = {"custom": CustomType}
+        data = generate_test_data(schema, count=2)
+        
+        for record in data:
+            assert isinstance(record["custom"], str)
+            assert "CustomType_value" in record["custom"]
+
+    def test_generate_empty_schema(self):
+        """Test generating data with empty schema."""
+        data = generate_test_data({}, count=3)
+        
+        assert len(data) == 3
+        for record in data:
+            assert record == {}
+
+    def test_generate_zero_count(self):
+        """Test generating zero records."""
+        schema = {"name": str}
+        data = generate_test_data(schema, count=0)
+        
+        assert data == []
