@@ -9,6 +9,8 @@ from string import Template
 from typing import Any
 
 __all__ = [
+    "to_snake_case",
+    "to_camel_case",
     "to_pascal_case",
     "to_kebab_case", 
     "template_safe_substitute",
@@ -19,6 +21,87 @@ __all__ = [
     "extract_urls",
     "truncate_text",
 ]
+
+
+def to_snake_case(text: str) -> str:
+    """Convert text to snake_case.
+    
+    Converts PascalCase, camelCase, kebab-case, and space-separated text to snake_case.
+    
+    Args:
+        text: Input text to convert
+        
+    Returns:
+        Text converted to snake_case
+        
+    Examples:
+        >>> to_snake_case("HelloWorld")
+        'hello_world'
+        >>> to_snake_case("helloWorld")
+        'hello_world'
+        >>> to_snake_case("hello-world")
+        'hello_world'
+        >>> to_snake_case("hello world")
+        'hello_world'
+    """
+    if not text:
+        return ""
+    
+    # Insert underscores before uppercase letters that follow lowercase letters or digits
+    text = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', '_', text)
+    
+    # Insert underscores between consecutive uppercase letters and following lowercase letters
+    text = re.sub(r'(?<=[A-Z])(?=[A-Z][a-z])', '_', text)
+    
+    # Replace hyphens and spaces with underscores
+    text = re.sub(r'[-\s]+', '_', text)
+    
+    # Convert to lowercase and remove multiple consecutive underscores
+    text = re.sub(r'_+', '_', text.lower())
+    
+    # Remove leading/trailing underscores
+    return text.strip('_')
+
+
+def to_camel_case(text: str) -> str:
+    """Convert text to camelCase.
+    
+    Converts snake_case, kebab-case, PascalCase, and space-separated text to camelCase.
+    
+    Args:
+        text: Input text to convert
+        
+    Returns:
+        Text converted to camelCase
+        
+    Examples:
+        >>> to_camel_case("hello_world")
+        'helloWorld'
+        >>> to_camel_case("hello-world")
+        'helloWorld'
+        >>> to_camel_case("hello world")
+        'helloWorld'
+        >>> to_camel_case("HelloWorld")
+        'helloWorld'
+    """
+    if not text:
+        return ""
+    
+    # Split on common delimiters and camelCase boundaries
+    words = re.split(r'[-_\s]+|(?<=[a-z])(?=[A-Z])', text)
+    
+    # Filter out empty strings
+    words = [word for word in words if word]
+    
+    if not words:
+        return ""
+    
+    # First word lowercase, rest capitalized
+    result = words[0].lower()
+    for word in words[1:]:
+        result += word.capitalize()
+    
+    return result
 
 
 def to_pascal_case(text: str) -> str:
