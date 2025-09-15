@@ -4,6 +4,7 @@ This module provides utilities for password hashing, secret generation,
 data hashing, JWT tokens, and input sanitization.
 """
 
+import bcrypt
 from typing import Any
 
 __all__ = [
@@ -19,30 +20,66 @@ __all__ = [
 
 
 def hash_password(password: str) -> str:
-    """Hash password using secure algorithm.
+    """Hash password using bcrypt algorithm.
     
     Args:
-        password: Plain text password
+        password: Plain text password to hash
         
     Returns:
-        Hashed password
+        Bcrypt hashed password as string
+        
+    Example:
+        >>> hashed = hash_password("my_secure_password")
+        >>> len(hashed) == 60  # bcrypt hashes are always 60 characters
+        True
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 9.1")
+    if not isinstance(password, str):
+        raise TypeError("Password must be a string")
+    
+    if not password:
+        raise ValueError("Password cannot be empty")
+    
+    # Generate salt and hash password
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    
+    return hashed.decode('utf-8')
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash.
+    """Verify password against bcrypt hash.
     
     Args:
-        password: Plain text password
-        hashed: Hashed password to verify against
+        password: Plain text password to verify
+        hashed: Bcrypt hashed password to verify against
         
     Returns:
         True if password matches hash, False otherwise
+        
+    Example:
+        >>> hashed = hash_password("my_password")
+        >>> verify_password("my_password", hashed)
+        True
+        >>> verify_password("wrong_password", hashed)
+        False
     """
-    # Placeholder implementation
-    raise NotImplementedError("Function will be implemented in task 9.1")
+    if not isinstance(password, str):
+        raise TypeError("Password must be a string")
+    
+    if not isinstance(hashed, str):
+        raise TypeError("Hashed password must be a string")
+    
+    if not password:
+        raise ValueError("Password cannot be empty")
+    
+    if not hashed:
+        raise ValueError("Hashed password cannot be empty")
+    
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except ValueError:
+        # Invalid hash format
+        return False
 
 
 def generate_secret_key(length: int = 32) -> str:
