@@ -1,93 +1,154 @@
-# Dev QoL Toolkit - Usage Examples
+# devtools-py Examples
 
-This directory contains practical usage examples for all utility modules in the devtools-py package. Each example demonstrates real-world scenarios and includes edge cases and limitations.
+This directory contains comprehensive examples demonstrating the functionality of the `devtools-py` package installed from PyPI.
 
-## Quick Start
+## 📁 Example Files
 
-```python
-# Install the package
-pip install devtools-py
+### 1. `comprehensive_demo.py`
+**Complete functionality showcase**
+- Demonstrates all 16 utility modules
+- Shows 200+ functions in action
+- Tests async operations, CLI utilities, security features, and more
+- Perfect for understanding the full scope of the package
 
-# Import utilities
-from devtools_py import json_utils, file_utils, string_utils
+**Run it:**
+```bash
+python examples/comprehensive_demo.py
 ```
 
-## Examples by Category
+### 2. `cli_demo.py`
+**Command-line interface demonstration**
+- Tests all CLI commands programmatically
+- Shows 50+ CLI commands across 8 categories
+- Validates command outputs and help systems
+- Great for understanding the CLI capabilities
 
-### Core Utilities
-- [JSON Utilities](json_examples.py) - JSON manipulation and validation
-- [File Utilities](file_examples.py) - File operations and management
-- [Data Utilities](data_examples.py) - Data processing and manipulation
-
-### Text and Configuration
-- [String Utilities](string_examples.py) - String manipulation and validation
-- [Configuration Management](config_examples.py) - Configuration loading and management
-
-### System and CLI
-- [System Utilities](system_examples.py) - System information and process management
-- [CLI Utilities](cli_examples.py) - Command-line interface helpers
-
-### Advanced Features
-- [HTTP Utilities](http_examples.py) - HTTP client operations
-- [Async Utilities](async_examples.py) - Asynchronous programming helpers
-- [Security Utilities](security_examples.py) - Security and hashing functions
-- [Time Utilities](time_examples.py) - Date and time manipulation
-- [Validation Utilities](validation_examples.py) - Input validation and schema checking
-- [Development Utilities](dev_examples.py) - Debugging and profiling tools
-- [Logging Utilities](log_examples.py) - Logging setup and management
-
-## Common Patterns
-
-### Error Handling
-All utilities follow consistent error handling patterns:
-
-```python
-try:
-    result = some_utility_function(data)
-except ValidationError as e:
-    print(f"Validation failed: {e}")
-except ConfigurationError as e:
-    print(f"Configuration error: {e}")
+**Run it:**
+```bash
+python examples/cli_demo.py
 ```
 
-### Type Safety
-All functions include proper type hints:
+### 3. `real_world_example.py`
+**Practical development scenarios**
+- User management system with authentication
+- Configuration management across environments
+- Security best practices implementation
+- Data validation and processing workflows
+- Shows how to combine multiple utilities for real applications
 
-```python
-from typing import Dict, List, Optional
-from devtools_py.string_utils import to_pascal_case
-
-# Type-safe usage
-result: str = to_pascal_case("hello_world")
+**Run it:**
+```bash
+python examples/real_world_example.py
 ```
 
-### Async Support
-Many utilities have async variants:
+## 🚀 Quick Start
 
+1. **Install devtools-py from PyPI:**
+   ```bash
+   pip install devtools-py
+   ```
+
+2. **Run all examples:**
+   ```bash
+   # Comprehensive functionality demo
+   python examples/comprehensive_demo.py
+   
+   # CLI commands demo
+   python examples/cli_demo.py
+   
+   # Real-world usage scenarios
+   python examples/real_world_example.py
+   ```
+
+## 📋 What You'll See
+
+### String Utilities
 ```python
-import asyncio
-from devtools_py.async_utils import AsyncFileManager
+from devtools_py import string_utils
 
-async def main():
-    async_file = AsyncFileManager()
-    content = await async_file.read_text("example.txt")
-    
-asyncio.run(main())
+# Case conversions
+string_utils.to_snake_case("MyVariableName")  # "my_variable_name"
+string_utils.to_pascal_case("my_variable")    # "MyVariable"
+
+# Validation
+string_utils.validate_email("user@example.com")  # True
+string_utils.validate_url("https://github.com")  # True
 ```
 
-## Edge Cases and Limitations
+### Security Features
+```python
+from devtools_py import security_utils
 
-Each example file documents:
-- Common edge cases and how they're handled
-- Performance considerations
-- Platform-specific limitations
-- Dependency requirements
+# Password hashing
+hashed = security_utils.hash_password("MyPassword123!")
+verified = security_utils.verify_password("MyPassword123!", hashed)
 
-## Contributing Examples
+# JWT tokens
+token = security_utils.generate_jwt_token({"user": "alice"}, "secret")
+payload = security_utils.verify_jwt_token(token, "secret")
+```
 
-When adding new examples:
-1. Include practical, real-world scenarios
-2. Document edge cases and limitations
-3. Provide both simple and advanced usage
-4. Include error handling examples
-5. Add performance notes where relevant
+### CLI Commands
+```bash
+# String operations
+devtools-py string convert --to snake "MyVariableName"
+
+# Security operations
+devtools-py security hash "my-data"
+devtools-py security generate-secret --length 32
+
+# System information
+devtools-py system info
+
+# Time utilities
+devtools-py time parse "2024-01-15 14:30:00"
+```
+
+### Configuration Management
+```python
+from devtools_py.config_utils import ConfigManager
+
+config = ConfigManager(["config.json", "config.yaml"])
+config.load()
+
+# Type-safe getters
+port = config.get("server.port", default=8000, type_hint=int)
+debug = config.get("debug", default=False, type_hint=bool)
+```
+
+## 🎯 Key Features Demonstrated
+
+- **16 Utility Modules**: String, JSON, file, data, config, system, security, time, validation, CLI, HTTP, async, dev utilities
+- **200+ Functions**: Comprehensive toolkit for Python development
+- **50+ CLI Commands**: Full command-line interface
+- **Type Safety**: Complete type annotations throughout
+- **Async Support**: Native async/await compatibility
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Security Best Practices**: Secure password hashing, JWT tokens, input sanitization
+- **Performance Optimized**: Efficient implementations with benchmarking tools
+
+## 📊 Example Output
+
+When you run the examples, you'll see detailed output showing:
+- ✅ Successful operations with results
+- 📊 Performance metrics and statistics
+- 🔍 Validation results and error handling
+- 🎨 Formatted tables and colored output
+- 📈 Progress bars and timing information
+
+## 🔧 Requirements
+
+- Python 3.10+
+- devtools-py (installed from PyPI)
+- Internet connection (for HTTP utilities demo)
+
+## 📚 Learn More
+
+- **Package Documentation**: See the main README.md
+- **API Reference**: Check function docstrings and type hints
+- **PyPI Page**: https://pypi.org/project/devtools-py/
+- **Source Code**: Available in the package installation
+
+---
+
+These examples demonstrate how `devtools-py` can significantly improve your Python development workflow by providing battle-tested utilities for common tasks. Whether you're building web applications, CLI tools, or data processing pipelines, devtools-py has the utilities you need.
