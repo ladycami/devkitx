@@ -1,4 +1,4 @@
-# DevTools-Py
+# DevKitX
 
 **Comprehensive quality-of-life utilities for Python developers**
 
@@ -24,7 +24,7 @@ A modern, type-safe toolkit providing essential utilities for common development
 ## Installation
 
 ```bash
-pip install devtools-py
+pip install devkitx
 ```
 
 ## Quick Start
@@ -449,23 +449,23 @@ The toolkit also provides a command-line interface for common operations:
 
 ```bash
 # String manipulation
-devtools-py string convert --to snake "CamelCase"
-devtools-py string validate --email "user@example.com"
+devkitx string convert --to snake "CamelCase"
+devkitx string validate --email "user@example.com"
 
 # Configuration management
-devtools-py config merge config1.json config2.yaml
+devkitx config merge config1.json config2.yaml
 
 # Security utilities
-devtools-py security hash --algorithm sha256 "my-data"
-devtools-py security generate --type uuid
+devkitx security hash --algorithm sha256 "my-data"
+devkitx security generate --type uuid
 
 # System information
-devtools-py system info
-devtools-py system find-executable python
+devkitx system info
+devkitx system find-executable python
 
 # Time utilities
-devtools-py time parse "2024-01-15 14:30:00"
-devtools-py time format-duration 3661
+devkitx time parse "2024-01-15 14:30:00"
+devkitx time format-duration 3661
 ```
 
 ## Requirements
@@ -477,8 +477,8 @@ devtools-py time format-duration 3661
 
 ```bash
 # Clone the repository
-git clone https://github.com/ladycami/devtools-py.git
-cd devtools-py
+git clone https://github.com/ladycami/devkitx.git
+cd devkitx
 
 # Install in development mode
 pip install -e ".[dev]"

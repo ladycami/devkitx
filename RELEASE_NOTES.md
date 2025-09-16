@@ -1,8 +1,8 @@
-# Release Notes - devtools-py v1.0.0
+# Release Notes - DevKitX v1.0.0
 
 ## 🎉 Major Release: Complete Developer Toolkit
 
-This is the first major release of devtools-py, a comprehensive quality-of-life utilities package for Python developers.
+This is the first major release of DevKitX, a comprehensive quality-of-life utilities package for Python developers.
 
 ### 🚀 New Features
 
@@ -49,7 +49,7 @@ This is the first major release of devtools-py, a comprehensive quality-of-life 
 
 ### 📦 Installation
 ```bash
-pip install devtools-py
+pip install devkitx
 ```
 
 ### 🎯 Usage Examples
@@ -82,14 +82,14 @@ debug = config.get("debug", default=False, type_hint=bool)
 #### CLI Usage
 ```bash
 # String operations
-devtools-py string convert --to snake "MyVariableName"
+devkitx string convert --to snake "MyVariableName"
 
 # Security operations
-devtools-py security hash "my-data"
-devtools-py security generate-secret --length 32
+devkitx security hash "my-data"
+devkitx security generate-secret --length 32
 
 # System information
-devtools-py system info
+devkitx system info
 ```
 
 ### 🔄 Migration Guide

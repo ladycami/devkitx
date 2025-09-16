@@ -1,4 +1,4 @@
-"""String manipulation utilities for devtools-py.
+"""String manipulation utilities for DevKitX.
 
 This module provides comprehensive string manipulation functions including
 case conversions, validation, sanitization, and text processing utilities.

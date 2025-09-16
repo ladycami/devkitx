@@ -1,4 +1,4 @@
-"""JSON utilities for devtools-py.
+"""JSON utilities for DevKitX.
 
 This module provides utilities for loading, saving, and manipulating JSON data
 with enhanced error handling and formatting options.

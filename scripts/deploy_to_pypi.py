@@ -5,6 +5,7 @@ PyPI deployment script for devtools-py.
 This script handles the deployment of the package to PyPI using twine.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -84,9 +85,17 @@ def upload_to_testpypi():
     """Upload to TestPyPI first for testing."""
     print("\n🚀 Uploading to TestPyPI...")
     
+    # Load environment variables
+    test_pypi_token = os.getenv("TEST_PYPI_TOKEN")
+    if not test_pypi_token:
+        print("❌ TEST_PYPI_TOKEN not found in environment")
+        return False
+    
     exit_code, stdout, stderr = run_command([
         "python", "-m", "twine", "upload", 
         "--repository", "testpypi",
+        "--username", "__token__",
+        "--password", test_pypi_token,
         "dist/*"
     ])
     
@@ -109,8 +118,17 @@ def upload_to_pypi():
         print("❌ Deployment cancelled by user")
         return False
     
+    # Load environment variables
+    pypi_token = os.getenv("PYPI_TOKEN")
+    if not pypi_token:
+        print("❌ PYPI_TOKEN not found in environment")
+        return False
+    
     exit_code, stdout, stderr = run_command([
-        "python", "-m", "twine", "upload", "dist/*"
+        "python", "-m", "twine", "upload",
+        "--username", "__token__",
+        "--password", pypi_token,
+        "dist/*"
     ])
     
     if exit_code != 0:

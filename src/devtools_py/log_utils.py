@@ -1,4 +1,4 @@
-"""Logging utilities for devtools-py.
+"""Logging utilities for DevKitX.
 
 This module provides utilities for setting up logging, timing operations,
 and decorating functions with logging capabilities.

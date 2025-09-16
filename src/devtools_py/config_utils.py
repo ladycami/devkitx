@@ -1,4 +1,4 @@
-"""Configuration management utilities for devtools-py.
+"""Configuration management utilities for DevKitX.
 
 This module provides utilities for loading, managing, and validating
 configuration from various sources including JSON, YAML, TOML, and .env files.

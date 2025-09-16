@@ -375,7 +375,7 @@ REDIS_URL=redis://localhost:6379/0
 
 async def main():
     """Run all real-world examples."""
-    print("🌟 DEVTOOLS-PY REAL-WORLD EXAMPLES")
+    print("🌟 DEVKITX REAL-WORLD EXAMPLES")
     print("=" * 60)
     print("Demonstrating practical usage scenarios")
     print("=" * 60)
@@ -385,7 +385,7 @@ async def main():
     
     print("\n" + "=" * 60)
     print("🎉 ALL REAL-WORLD EXAMPLES COMPLETED!")
-    print("These examples show how devtools-py can simplify common development tasks:")
+    print("These examples show how DevKitX can simplify common development tasks:")
     print("• User authentication and session management")
     print("• Data validation and security")
     print("• Configuration management")

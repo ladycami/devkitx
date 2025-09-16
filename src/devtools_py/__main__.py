@@ -406,7 +406,7 @@ def execute_validation_commands(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point with command categories."""
     parser = argparse.ArgumentParser(
-        prog="devtools-py", description="Comprehensive developer quality-of-life utilities"
+        prog="devkitx", description="Comprehensive developer quality-of-life utilities"
     )
     subparsers = parser.add_subparsers(
         dest="command", required=True, help="Available command categories"

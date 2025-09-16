@@ -1,4 +1,4 @@
-"""Date and time utilities for devtools-py.
+"""Date and time utilities for DevKitX.
 
 This module provides utilities for date parsing, formatting, timezone handling,
 business day calculations, and scheduling.

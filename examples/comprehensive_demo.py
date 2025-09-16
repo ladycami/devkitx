@@ -477,7 +477,7 @@ def demo_dev_utilities():
 
 async def main():
     """Run all demonstrations."""
-    print("🚀 DEVTOOLS-PY COMPREHENSIVE DEMO")
+    print("🚀 DEVKITX COMPREHENSIVE DEMO")
     print("=" * 60)
     print("Testing all functionality from PyPI-installed package")
     print("=" * 60)
@@ -500,7 +500,7 @@ async def main():
     
     print("🎉 ALL DEMOS COMPLETED SUCCESSFULLY!")
     print("=" * 60)
-    print("✅ devtools-py is working perfectly from PyPI installation!")
+    print("✅ DevKitX is working perfectly from PyPI installation!")
 
 
 if __name__ == "__main__":

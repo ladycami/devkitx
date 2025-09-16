@@ -1,4 +1,4 @@
-"""Security and hashing utilities for devtools-py.
+"""Security and hashing utilities for DevKitX.
 
 This module provides utilities for password hashing, secret generation,
 data hashing, JWT tokens, and input sanitization.

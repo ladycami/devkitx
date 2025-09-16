@@ -3,12 +3,12 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "devtools-py"
+name = "devkitx"
 version = "1.0.0"
-description = "Comprehensive quality-of-life utilities for Python developers including JSON, HTTP, async, security, validation, and more."
+description = "DevKitX: Comprehensive quality-of-life utilities for Python developers including JSON, HTTP, async, security, validation, and more."
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "LadyCami", email = "ladycami@users.noreply.github.com" }]
+authors = [{ name = "LadyCami", email = "ladycami@serityops.com" }]
 requires-python = ">=3.10"
 dependencies = [
   "httpx>=0.27,<0.28",
@@ -52,7 +52,7 @@ Documentation = "https://github.com/ladycami/devtools-py#readme"
 Repository = "https://github.com/ladycami/devtools-py.git"
 
 [project.scripts]
-devtools-py = "devtools_py.__main__:main"
+devkitx = "devtools_py.__main__:main"
 
 [project.optional-dependencies]
 dev = [

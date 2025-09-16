@@ -1,4 +1,4 @@
-"""Development and debugging utilities for devtools-py.
+"""Development and debugging utilities for DevKitX.
 
 This module provides utilities for profiling, debugging, testing,
 and development workflow enhancement.

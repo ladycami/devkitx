@@ -1,4 +1,4 @@
-"""DevTools-Py - Quality of Life utilities for Python developers.
+"""DevKitX - Quality of Life utilities for Python developers.
 
 This package provides a comprehensive set of utilities for common development tasks
 including JSON manipulation, file operations, logging, CLI utilities, HTTP clients,

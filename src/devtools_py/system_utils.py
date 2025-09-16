@@ -1,4 +1,4 @@
-"""System and process utilities for devtools-py.
+"""System and process utilities for DevKitX.
 
 This module provides utilities for system information, process execution,
 and cross-platform system operations.

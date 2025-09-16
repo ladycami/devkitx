@@ -1,4 +1,4 @@
-"""Async-compatible utilities for devtools-py.
+"""Async-compatible utilities for DevKitX.
 
 This module provides utilities for bridging sync/async code and
 async-compatible versions of common operations.

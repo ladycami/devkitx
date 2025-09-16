@@ -1,4 +1,4 @@
-"""Data manipulation utilities for devtools-py.
+"""Data manipulation utilities for DevKitX.
 
 This module provides utilities for data processing, transformation,
 and manipulation including case conversion, list operations, and

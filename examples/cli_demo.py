@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CLI demonstration script for devtools-py.
+CLI demonstration script for devkitx.
 
 This script demonstrates the command-line interface functionality
 by running various CLI commands programmatically.
@@ -15,7 +15,7 @@ def run_cli_command(args: list[str]) -> tuple[int, str, str]:
     """Run a CLI command and return exit code, stdout, stderr."""
     try:
         result = subprocess.run(
-            ["devtools-py"] + args,
+            ["devkitx"] + args,
             capture_output=True,
             text=True,
             timeout=30
@@ -29,7 +29,7 @@ def run_cli_command(args: list[str]) -> tuple[int, str, str]:
 
 def demo_cli_commands():
     """Demonstrate various CLI commands."""
-    print("🖥️ DEVTOOLS-PY CLI DEMONSTRATION")
+    print("🖥️ DEVKITX CLI DEMONSTRATION")
     print("=" * 60)
     print()
     
@@ -118,7 +118,7 @@ def demo_cli_commands():
     
     for description, args, expected in test_cases:
         print(f"Testing: {description}")
-        print(f"Command: devtools-py {' '.join(args)}")
+        print(f"Command: devkitx {' '.join(args)}")
         
         exit_code, stdout, stderr = run_cli_command(args)
         
@@ -165,7 +165,7 @@ def demo_help_commands():
     
     for args, description in help_commands:
         print(f"\n{description}:")
-        print(f"Command: devtools-py {' '.join(args)}")
+        print(f"Command: devkitx {' '.join(args)}")
         
         exit_code, stdout, stderr = run_cli_command(args)
         
@@ -184,16 +184,16 @@ def demo_help_commands():
 def main():
     """Main demonstration function."""
     print("Starting CLI demonstration...")
-    print("Make sure devtools-py is installed: pip install devtools-py")
+    print("Make sure devkitx is installed: pip install devkitx")
     print()
     
-    # Check if devtools-py is available
+    # Check if devkitx is available
     exit_code, stdout, stderr = run_cli_command(["--version"])
     if exit_code != 0:
         # Try with --help instead
         exit_code, stdout, stderr = run_cli_command(["--help"])
         if exit_code != 0:
-            print("❌ devtools-py CLI not found. Please install with: pip install devtools-py")
+            print("❌ devkitx CLI not found. Please install with: pip install devkitx")
             return 1
     
     # Run demonstrations
@@ -203,7 +203,7 @@ def main():
     print("\n" + "=" * 60)
     if success:
         print("🎊 CLI DEMONSTRATION COMPLETED SUCCESSFULLY!")
-        print("All devtools-py CLI commands are working perfectly!")
+        print("All devkitx CLI commands are working perfectly!")
     else:
         print("⚠️  Some CLI tests failed. Check the output above for details.")
     

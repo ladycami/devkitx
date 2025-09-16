@@ -1,4 +1,4 @@
-"""Input validation utilities for devtools-py.
+"""Input validation utilities for DevKitX.
 
 This module provides utilities for data validation, schema checking,
 and input sanitization.

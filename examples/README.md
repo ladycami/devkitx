@@ -1,6 +1,6 @@
-# devtools-py Examples
+# DevKitX Examples
 
-This directory contains comprehensive examples demonstrating the functionality of the `devtools-py` package installed from PyPI.
+This directory contains comprehensive examples demonstrating the functionality of the `devkitx` package installed from PyPI.
 
 ## 📁 Example Files
 
@@ -43,9 +43,9 @@ python examples/real_world_example.py
 
 ## 🚀 Quick Start
 
-1. **Install devtools-py from PyPI:**
+1. **Install DevKitX from PyPI:**
    ```bash
-   pip install devtools-py
+   pip install devkitx
    ```
 
 2. **Run all examples:**
@@ -91,17 +91,17 @@ payload = security_utils.verify_jwt_token(token, "secret")
 ### CLI Commands
 ```bash
 # String operations
-devtools-py string convert --to snake "MyVariableName"
+devkitx string convert --to snake "MyVariableName"
 
 # Security operations
-devtools-py security hash "my-data"
-devtools-py security generate-secret --length 32
+devkitx security hash "my-data"
+devkitx security generate-secret --length 32
 
 # System information
-devtools-py system info
+devkitx system info
 
 # Time utilities
-devtools-py time parse "2024-01-15 14:30:00"
+devkitx time parse "2024-01-15 14:30:00"
 ```
 
 ### Configuration Management
@@ -139,7 +139,7 @@ When you run the examples, you'll see detailed output showing:
 ## 🔧 Requirements
 
 - Python 3.10+
-- devtools-py (installed from PyPI)
+- devkitx (installed from PyPI)
 - Internet connection (for HTTP utilities demo)
 
 ## 📚 Learn More
@@ -151,4 +151,4 @@ When you run the examples, you'll see detailed output showing:
 
 ---
 
-These examples demonstrate how `devtools-py` can significantly improve your Python development workflow by providing battle-tested utilities for common tasks. Whether you're building web applications, CLI tools, or data processing pipelines, devtools-py has the utilities you need.
+These examples demonstrate how `devkitx` can significantly improve your Python development workflow by providing battle-tested utilities for common tasks. Whether you're building web applications, CLI tools, or data processing pipelines, DevKitX has the utilities you need.

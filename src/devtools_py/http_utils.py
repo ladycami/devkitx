@@ -1,4 +1,4 @@
-"""HTTP utilities for devtools-py.
+"""HTTP utilities for DevKitX.
 
 This module provides utilities for making HTTP requests with retry logic,
 async support, and convenient API client classes.

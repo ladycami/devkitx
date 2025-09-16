@@ -1,4 +1,4 @@
-"""File system utilities for devtools-py.
+"""File system utilities for DevKitX.
 
 This module provides utilities for file operations, directory management,
 and file system queries with enhanced error handling.
