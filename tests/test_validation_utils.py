@@ -1,7 +1,7 @@
 """Tests for validation utilities."""
 
 import pytest
-from devtools_py.validation_utils import (
+from devkitx.validation_utils import (
     validate_schema,
     validate_range,
     validate_length,

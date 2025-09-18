@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from devtools_py.system_utils import (
+from devkitx.system_utils import (
     find_executable,
     get_env_vars,
     get_free_port,

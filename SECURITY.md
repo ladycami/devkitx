@@ -12,7 +12,7 @@
 
 **Algorithm**: bcrypt with automatic salt generation
 ```python
-from devtools_py import security_utils
+from devkitx import security_utils
 
 # Secure password hashing
 hashed = security_utils.hash_password("user_password")
@@ -97,7 +97,7 @@ clean_input = security_utils.sanitize_input(user_input, allowed_chars="alphanume
 ### Environment Variables
 ```bash
 # Example secure configuration
-JWT_SECRET=$(python -c "from devtools_py import security_utils; print(security_utils.generate_secret_key(32))")
+JWT_SECRET=$(python -c "from devkitx import security_utils; print(security_utils.generate_secret_key(32))")
 DATABASE_PASSWORD="your-secure-password"
 API_KEY="your-api-key"
 ```
@@ -105,7 +105,7 @@ API_KEY="your-api-key"
 ### Configuration Security
 ```python
 # Load secrets securely
-from devtools_py.config_utils import ConfigManager
+from devkitx.config_utils import ConfigManager
 
 config = ConfigManager([".env"])
 config.load()

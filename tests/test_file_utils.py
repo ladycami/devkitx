@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 from hypothesis import given, strategies as st
 
-from devtools_py import file_utils
+from devkitx import file_utils
 
 
 class TestFindFile:

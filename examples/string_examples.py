@@ -2,14 +2,14 @@
 """
 String Utilities Examples
 
-This module demonstrates practical usage of devtools_py.string_utils
+This module demonstrates practical usage of devkitx.string_utils
 including case conversions, validation, sanitization, and text processing.
 """
 
 import re
 from typing import List, Dict, Any
 
-from devtools_py.string_utils import (
+from devkitx.string_utils import (
     to_pascal_case,
     to_kebab_case,
     to_snake_case,

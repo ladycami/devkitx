@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from devtools_py.dev_utils import (
+from devkitx.dev_utils import (
     MockHTTPServer,
     benchmark_functions,
     generate_test_data,

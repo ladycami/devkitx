@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 import pytest
 from hypothesis import given, strategies as st
 
-from devtools_py.log_utils import setup_logging, log_time, log_calls
+from devkitx.log_utils import setup_logging, log_time, log_calls
 
 
 class TestSetupLogging:
@@ -19,7 +19,7 @@ class TestSetupLogging:
         """Test basic logger setup."""
         logger = setup_logging(level="DEBUG")
 
-        assert logger.name == "devtools_py"
+        assert logger.name == "devkitx"
         assert logger.level == logging.DEBUG
         assert len(logger.handlers) == 1
         assert isinstance(logger.handlers[0], logging.StreamHandler)
@@ -64,7 +64,7 @@ class TestSetupLogging:
         """Test loguru fallback when loguru is not available."""
         # Mock the import to fail
         with patch.dict("sys.modules", {"loguru": None}):
-            with patch("devtools_py.log_utils.logging.getLogger") as mock_get_logger:
+            with patch("devkitx.log_utils.logging.getLogger") as mock_get_logger:
                 mock_logger = Mock()
                 mock_get_logger.return_value = mock_logger
 
@@ -87,7 +87,7 @@ class TestSetupLogging:
 
     def test_handler_clearing(self):
         """Test that existing handlers are cleared."""
-        logger = logging.getLogger("devtools_py")
+        logger = logging.getLogger("devkitx")
         # Add a dummy handler
         dummy_handler = logging.StreamHandler()
         logger.addHandler(dummy_handler)
@@ -138,7 +138,7 @@ class TestLogTime:
             with log_time("test"):
                 pass
 
-            mock_get_logger.assert_called_with("devtools_py")
+            mock_get_logger.assert_called_with("devkitx")
             mock_logger.info.assert_called_once()
 
     def test_log_time_with_exception(self):

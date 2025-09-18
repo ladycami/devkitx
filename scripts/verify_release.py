@@ -90,7 +90,7 @@ def verify_package_installation():
         # Test import
         print("Testing package import...")
         exit_code, stdout, stderr = run_command([
-            str(python_exe), "-c", "import devtools_py; print('Import successful')"
+            str(python_exe), "-c", "import devkitx; print('Import successful')"
         ])
         
         if exit_code != 0:
@@ -102,7 +102,7 @@ def verify_package_installation():
         # Test CLI
         print("Testing CLI functionality...")
         exit_code, stdout, stderr = run_command([
-            str(python_exe), "-m", "devtools_py", "--help"
+            str(python_exe), "-m", "devkitx", "--help"
         ])
         
         if exit_code != 0:
@@ -118,7 +118,7 @@ def verify_package_installation():
         # Test a simple command
         print("Testing CLI command...")
         exit_code, stdout, stderr = run_command([
-            str(python_exe), "-m", "devtools_py", "string", "convert", "--to", "snake", "TestString"
+            str(python_exe), "-m", "devkitx", "string", "convert", "--to", "snake", "TestString"
         ])
         
         if exit_code != 0:

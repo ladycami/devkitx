@@ -1,4 +1,4 @@
-"""Integration tests for devtools_py modules."""
+"""Integration tests for devkitx modules."""
 
 from __future__ import annotations
 import json
@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from devtools_py import (
+from devkitx import (
     json_utils,
     file_utils,
     string_utils,
@@ -554,7 +554,7 @@ class TestCLIIntegration:
 
     def test_cli_json_commands_integration(self, tmp_path: Path):
         """Test CLI JSON commands integration."""
-        from devtools_py.__main__ import main
+        from devkitx.__main__ import main
 
         # Create test JSON file
         test_data = {"name": "test", "items": [1, 2, 3]}
@@ -575,7 +575,7 @@ class TestCLIIntegration:
 
     def test_cli_string_commands_integration(self):
         """Test CLI string commands integration."""
-        from devtools_py.__main__ import main
+        from devkitx.__main__ import main
 
         # Test case conversion
         with patch("builtins.print") as mock_print:
@@ -591,7 +591,7 @@ class TestCLIIntegration:
 
     def test_cli_file_commands_integration(self, tmp_path: Path):
         """Test CLI file commands integration."""
-        from devtools_py.__main__ import main
+        from devkitx.__main__ import main
 
         # Create test files
         (tmp_path / "test1.txt").write_text("content1")
@@ -605,7 +605,7 @@ class TestCLIIntegration:
 
     def test_cli_security_commands_integration(self):
         """Test CLI security commands integration."""
-        from devtools_py.__main__ import main
+        from devkitx.__main__ import main
 
         # Test hash command
         with patch("builtins.print") as mock_print:

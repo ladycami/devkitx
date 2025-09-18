@@ -53,8 +53,8 @@ def validate_package_structure() -> bool:
         "pyproject.toml",
         "README.md",
         "LICENSE",
-        "src/devtools_py/__init__.py",
-        "src/devtools_py/__main__.py",
+        "src/devkitx/__init__.py",
+        "src/devkitx/__main__.py",
     ]
     
     missing_files = []

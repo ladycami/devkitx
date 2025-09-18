@@ -41,20 +41,20 @@ clean:
 
 # Code quality
 lint:
-	python -m ruff check src/devtools_py tests
-	python -m black --check src/devtools_py tests
-	python -m mypy src/devtools_py
+	python -m ruff check src/devkitx tests
+	python -m black --check src/devkitx tests
+	python -m mypy src/devkitx
 
 format:
-	python -m ruff check --fix src/devtools_py tests
-	python -m black src/devtools_py tests
+	python -m ruff check --fix src/devkitx tests
+	python -m black src/devkitx tests
 
 # Testing
 test:
-	python -m pytest --cov=devtools_py --cov-report=term-missing
+	python -m pytest --cov=devkitx --cov-report=term-missing
 
 test-verbose:
-	python -m pytest -v --cov=devtools_py --cov-report=term-missing --cov-report=html
+	python -m pytest -v --cov=devkitx --cov-report=term-missing --cov-report=html
 
 test-distribution:
 	python scripts/test_package_distribution.py

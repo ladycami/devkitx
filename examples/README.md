@@ -64,7 +64,7 @@ python examples/real_world_example.py
 
 ### String Utilities
 ```python
-from devtools_py import string_utils
+from devkitx import string_utils
 
 # Case conversions
 string_utils.to_snake_case("MyVariableName")  # "my_variable_name"
@@ -77,7 +77,7 @@ string_utils.validate_url("https://github.com")  # True
 
 ### Security Features
 ```python
-from devtools_py import security_utils
+from devkitx import security_utils
 
 # Password hashing
 hashed = security_utils.hash_password("MyPassword123!")
@@ -106,7 +106,7 @@ devkitx time parse "2024-01-15 14:30:00"
 
 ### Configuration Management
 ```python
-from devtools_py.config_utils import ConfigManager
+from devkitx.config_utils import ConfigManager
 
 config = ConfigManager(["config.json", "config.yaml"])
 config.load()

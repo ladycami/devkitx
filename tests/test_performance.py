@@ -1,4 +1,4 @@
-"""Performance benchmark tests for devtools_py."""
+"""Performance benchmark tests for devkitx."""
 
 from __future__ import annotations
 import time
@@ -8,7 +8,7 @@ from typing import Callable, Any
 
 import pytest
 
-from devtools_py import (
+from devkitx import (
     json_utils,
     file_utils,
     string_utils,
@@ -515,7 +515,7 @@ class TestConcurrencyPerformance:
     @pytest.mark.asyncio
     async def test_async_file_operations_performance(self, tmp_path: Path):
         """Test async file operations performance."""
-        from devtools_py.async_utils import AsyncFileManager
+        from devkitx.async_utils import AsyncFileManager
 
         benchmark = PerformanceBenchmark("Async file operations", target_time=1.0)
 

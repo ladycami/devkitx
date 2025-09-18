@@ -52,7 +52,7 @@ def create_test_environment() -> Path:
     """Create a clean virtual environment for testing."""
     print("🏗️  Creating clean test environment...")
     
-    temp_dir = Path(tempfile.mkdtemp(prefix="devtools_py_test_"))
+    temp_dir = Path(tempfile.mkdtemp(prefix="devkitx_test_"))
     venv_path = temp_dir / "test_venv"
     
     # Create virtual environment
@@ -85,21 +85,21 @@ def test_imports(venv_path: Path) -> None:
     print("🔍 Testing module imports...")
     
     modules_to_test = [
-        "devtools_py",
-        "devtools_py.json_utils",
-        "devtools_py.file_utils",
-        "devtools_py.string_utils",
-        "devtools_py.config_utils",
-        "devtools_py.system_utils",
-        "devtools_py.security_utils",
-        "devtools_py.time_utils",
-        "devtools_py.validation_utils",
-        "devtools_py.data_utils",
-        "devtools_py.async_utils",
-        "devtools_py.dev_utils",
-        "devtools_py.cli_utils",
-        "devtools_py.http_utils",
-        "devtools_py.log_utils",
+        "devkitx",
+        "devkitx.json_utils",
+        "devkitx.file_utils",
+        "devkitx.string_utils",
+        "devkitx.config_utils",
+        "devkitx.system_utils",
+        "devkitx.security_utils",
+        "devkitx.time_utils",
+        "devkitx.validation_utils",
+        "devkitx.data_utils",
+        "devkitx.async_utils",
+        "devkitx.dev_utils",
+        "devkitx.cli_utils",
+        "devkitx.http_utils",
+        "devkitx.log_utils",
     ]
     
     for module in modules_to_test:
@@ -114,7 +114,7 @@ def test_cli_commands(venv_path: Path) -> None:
     # Test help command
     run_command_in_venv(
         venv_path,
-        ["python", "-m", "devtools_py", "--help"],
+        ["python", "-m", "devkitx", "--help"],
         "Testing CLI help command"
     )
     
@@ -122,7 +122,7 @@ def test_cli_commands(venv_path: Path) -> None:
     try:
         run_command_in_venv(
             venv_path,
-            ["python", "-m", "devtools_py", "--version"],
+            ["python", "-m", "devkitx", "--version"],
             "Testing CLI version command"
         )
     except subprocess.CalledProcessError:
@@ -131,14 +131,14 @@ def test_cli_commands(venv_path: Path) -> None:
     # Test a simple string command
     run_command_in_venv(
         venv_path,
-        ["python", "-m", "devtools_py", "string", "convert", "--to", "snake", "TestString"],
+        ["python", "-m", "devkitx", "string", "convert", "--to", "snake", "TestString"],
         "Testing string conversion CLI command"
     )
     
     # Test system info command
     run_command_in_venv(
         venv_path,
-        ["python", "-m", "devtools_py", "system", "info"],
+        ["python", "-m", "devkitx", "system", "info"],
         "Testing system info CLI command"
     )
 
@@ -148,9 +148,9 @@ def test_basic_functionality(venv_path: Path) -> None:
     print("🔍 Testing basic functionality...")
     
     test_script = '''
-import devtools_py.json_utils as json_utils
-import devtools_py.string_utils as string_utils
-import devtools_py.security_utils as security_utils
+import devkitx.json_utils as json_utils
+import devkitx.string_utils as string_utils
+import devkitx.security_utils as security_utils
 import tempfile
 import json
 from pathlib import Path

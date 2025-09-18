@@ -15,7 +15,7 @@ def test_json_file_workflow():
     """Test JSON file operations workflow."""
     print("🔍 Testing JSON file workflow...")
     
-    import devtools_py.json_utils as json_utils
+    import devkitx.json_utils as json_utils
     
     test_data = {
         "users": [
@@ -56,7 +56,7 @@ def test_string_processing_workflow():
     """Test string processing workflow."""
     print("🔍 Testing string processing workflow...")
     
-    import devtools_py.string_utils as string_utils
+    import devkitx.string_utils as string_utils
     
     # Test case conversions
     test_string = "MyVariableName"
@@ -87,7 +87,7 @@ def test_security_workflow():
     """Test security operations workflow."""
     print("🔍 Testing security workflow...")
     
-    import devtools_py.security_utils as security_utils
+    import devkitx.security_utils as security_utils
     
     # Test password hashing
     password = "test_password_123"
@@ -113,7 +113,7 @@ def test_system_info_workflow():
     """Test system information workflow."""
     print("🔍 Testing system info workflow...")
     
-    import devtools_py.system_utils as system_utils
+    import devkitx.system_utils as system_utils
     
     # Test system info
     sys_info = system_utils.get_system_info()
@@ -137,7 +137,7 @@ def test_data_processing_workflow():
     """Test data processing workflow."""
     print("🔍 Testing data processing workflow...")
     
-    import devtools_py.data_utils as data_utils
+    import devkitx.data_utils as data_utils
     
     # Test deep operations
     dict1 = {"a": {"b": 1}, "c": 2}
@@ -171,7 +171,7 @@ def test_cli_integration():
     
     # Test string conversion command
     result = subprocess.run(
-        [sys.executable, "-m", "devtools_py", "string", "convert", "--to", "snake", "TestString"],
+        [sys.executable, "-m", "devkitx", "string", "convert", "--to", "snake", "TestString"],
         capture_output=True,
         text=True
     )
@@ -180,7 +180,7 @@ def test_cli_integration():
     
     # Test system info command
     result = subprocess.run(
-        [sys.executable, "-m", "devtools_py", "system", "info"],
+        [sys.executable, "-m", "devkitx", "system", "info"],
         capture_output=True,
         text=True
     )
@@ -194,7 +194,7 @@ def test_async_utilities():
     print("🔍 Testing async utilities...")
     
     import asyncio
-    import devtools_py.async_utils as async_utils
+    import devkitx.async_utils as async_utils
     
     # Test sync to async conversion
     def sync_function(x):

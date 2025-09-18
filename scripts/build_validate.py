@@ -55,8 +55,8 @@ def validate_package_structure() -> bool:
         "pyproject.toml",
         "README.md",
         "LICENSE",
-        "src/devtools_py/__init__.py",
-        "src/devtools_py/__main__.py",
+        "src/devkitx/__init__.py",
+        "src/devkitx/__main__.py",
     ]
     
     missing_files = []
@@ -90,28 +90,28 @@ def main() -> int:
     
     # Run ruff linting
     success, _ = run_command(
-        ["python", "-m", "ruff", "check", "src/devtools_py", "tests"],
+        ["python", "-m", "ruff", "check", "src/devkitx", "tests"],
         "Ruff linting"
     )
     validations.append(success)
     
     # Run black formatting check
     success, _ = run_command(
-        ["python", "-m", "black", "--check", "src/devtools_py", "tests"],
+        ["python", "-m", "black", "--check", "src/devkitx", "tests"],
         "Black formatting check"
     )
     validations.append(success)
     
     # Run mypy type checking
     success, _ = run_command(
-        ["python", "-m", "mypy", "src/devtools_py"],
+        ["python", "-m", "mypy", "src/devkitx"],
         "MyPy type checking"
     )
     validations.append(success)
     
     # Run test suite with coverage (allow 85% for now)
     success, output = run_command(
-        ["python", "-m", "pytest", "--cov=devtools_py", "--cov-report=term-missing", "--cov-fail-under=85"],
+        ["python", "-m", "pytest", "--cov=devkitx", "--cov-report=term-missing", "--cov-fail-under=85"],
         "Test suite with coverage"
     )
     validations.append(success)

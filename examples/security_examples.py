@@ -2,7 +2,7 @@
 """
 Security Utilities Examples
 
-This module demonstrates practical usage of devtools_py.security_utils
+This module demonstrates practical usage of devkitx.security_utils
 including password hashing, JWT tokens, data encryption, and input sanitization.
 """
 
@@ -10,7 +10,7 @@ import os
 import time
 from typing import Dict, Any, Optional
 
-from devtools_py.security_utils import (
+from devkitx.security_utils import (
     hash_password,
     verify_password,
     generate_secret_key,

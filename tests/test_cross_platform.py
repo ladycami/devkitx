@@ -1,4 +1,4 @@
-"""Cross-platform and error condition tests for devtools_py."""
+"""Cross-platform and error condition tests for devkitx."""
 
 from __future__ import annotations
 import platform
@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from devtools_py import (
+from devkitx import (
     file_utils,
     system_utils,
     string_utils,

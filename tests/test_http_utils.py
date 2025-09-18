@@ -8,7 +8,7 @@ import pytest
 import httpx
 from hypothesis import given, strategies as st
 
-from devtools_py.http_utils import (
+from devkitx.http_utils import (
     AsyncAPIClient,
     BaseAPIClient,
     api_request,
@@ -119,7 +119,7 @@ class TestAsyncAPIRequest:
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.request.side_effect = responses
 
-            with patch("devtools_py.http_utils._async_sleep_backoff") as mock_sleep:
+            with patch("devkitx.http_utils._async_sleep_backoff") as mock_sleep:
                 result = await async_api_request("GET", "https://api.example.com/test", retries=2)
 
                 assert result == {"success": True}
@@ -149,7 +149,7 @@ class TestAsyncAPIClient:
     @pytest.mark.asyncio
     async def test_get_request(self):
         """Test GET request."""
-        with patch("devtools_py.http_utils.async_api_request") as mock_request:
+        with patch("devkitx.http_utils.async_api_request") as mock_request:
             mock_request.return_value = {"data": "test"}
 
             client = AsyncAPIClient(
@@ -169,7 +169,7 @@ class TestAsyncAPIClient:
     @pytest.mark.asyncio
     async def test_post_request(self):
         """Test POST request."""
-        with patch("devtools_py.http_utils.async_api_request") as mock_request:
+        with patch("devkitx.http_utils.async_api_request") as mock_request:
             mock_request.return_value = {"created": True, "id": 123}
 
             client = AsyncAPIClient("https://api.example.com")
@@ -187,7 +187,7 @@ class TestAsyncAPIClient:
     @pytest.mark.asyncio
     async def test_all_http_methods(self):
         """Test all HTTP methods."""
-        with patch("devtools_py.http_utils.async_api_request") as mock_request:
+        with patch("devkitx.http_utils.async_api_request") as mock_request:
             mock_request.return_value = {"success": True}
 
             client = AsyncAPIClient("https://api.example.com")
@@ -225,7 +225,7 @@ class TestAsyncBatchRequests:
             {"id": 3, "name": "John", "created": True},
         ]
 
-        with patch("devtools_py.http_utils.async_api_request") as mock_request:
+        with patch("devkitx.http_utils.async_api_request") as mock_request:
             mock_request.side_effect = expected_responses
 
             results = await async_batch_requests(requests, concurrency_limit=2)
@@ -241,7 +241,7 @@ class TestAsyncBatchRequests:
             ("GET", "https://api.example.com/users/2", {"timeout": 30.0}),
         ]
 
-        with patch("devtools_py.http_utils.async_api_request") as mock_request:
+        with patch("devkitx.http_utils.async_api_request") as mock_request:
             mock_request.return_value = {"success": True}
 
             await async_batch_requests(
@@ -523,7 +523,7 @@ class TestApiRequest:
             mock_client_class.return_value.__enter__.return_value = mock_client
             mock_client.request.side_effect = responses
 
-            with patch("devtools_py.http_utils._sleep_backoff") as mock_sleep:
+            with patch("devkitx.http_utils._sleep_backoff") as mock_sleep:
                 result = api_request("GET", "https://api.example.com/test", retries=2)
 
                 assert result == {"success": True}
@@ -542,7 +542,7 @@ class TestApiRequest:
                 mock_client_class.return_value.__enter__.return_value = mock_client
                 mock_client.request.return_value = mock_response
 
-                with patch("devtools_py.http_utils._sleep_backoff") as mock_sleep:
+                with patch("devkitx.http_utils._sleep_backoff") as mock_sleep:
                     with pytest.raises(httpx.HTTPStatusError):
                         api_request("GET", "https://api.example.com/test", retries=2)
 
@@ -577,7 +577,7 @@ class TestApiRequest:
             mock_client_class.return_value.__enter__.return_value = mock_client
             mock_client.request.side_effect = httpx.ConnectError("Connection failed")
 
-            with patch("devtools_py.http_utils._sleep_backoff") as mock_sleep:
+            with patch("devkitx.http_utils._sleep_backoff") as mock_sleep:
                 with pytest.raises(httpx.ConnectError):
                     api_request("GET", "https://api.example.com/test", retries=2)
 
@@ -612,7 +612,7 @@ class TestBaseAPIClient:
 
     def test_get_request(self):
         """Test GET request."""
-        with patch("devtools_py.http_utils.api_request") as mock_request:
+        with patch("devkitx.http_utils.api_request") as mock_request:
             mock_request.return_value = {"data": "test"}
 
             client = BaseAPIClient(
@@ -630,7 +630,7 @@ class TestBaseAPIClient:
 
     def test_post_request(self):
         """Test POST request."""
-        with patch("devtools_py.http_utils.api_request") as mock_request:
+        with patch("devkitx.http_utils.api_request") as mock_request:
             mock_request.return_value = {"created": True, "id": 123}
 
             client = BaseAPIClient("https://api.example.com")
@@ -643,7 +643,7 @@ class TestBaseAPIClient:
 
     def test_all_http_methods(self):
         """Test all HTTP methods."""
-        with patch("devtools_py.http_utils.api_request") as mock_request:
+        with patch("devkitx.http_utils.api_request") as mock_request:
             mock_request.return_value = {"success": True}
 
             client = BaseAPIClient("https://api.example.com")
@@ -667,7 +667,7 @@ class TestBaseAPIClient:
     )
     def test_client_with_various_parameters(self, path, timeout):
         """Test client with various parameters."""
-        with patch("devtools_py.http_utils.api_request") as mock_request:
+        with patch("devkitx.http_utils.api_request") as mock_request:
             mock_request.return_value = {"success": True}
 
             client = BaseAPIClient("https://api.example.com", timeout=timeout)

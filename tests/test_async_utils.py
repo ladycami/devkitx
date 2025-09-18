@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from devtools_py.async_utils import (
+from devkitx.async_utils import (
     AsyncFileManager,
     async_to_sync,
     sync_to_async,

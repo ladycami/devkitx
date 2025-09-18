@@ -1,5 +1,5 @@
 from __future__ import annotations
-from devtools_py import data_utils
+from devkitx import data_utils
 
 
 def test_case_conversions():

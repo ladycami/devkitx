@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from devtools_py.config_utils import ConfigManager, load_dotenv, load_yaml_config, load_toml_config
+from devkitx.config_utils import ConfigManager, load_dotenv, load_yaml_config, load_toml_config
 
 
 class TestLoadDotenv:

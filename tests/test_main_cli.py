@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 import pytest
 from hypothesis import given, strategies as st
 
-from devtools_py.__main__ import (
+from devkitx.__main__ import (
     main,
     add_json_commands,
     add_file_commands,
@@ -46,7 +46,7 @@ class TestMainFunction:
 
     def test_main_keyboard_interrupt(self):
         """Test main handles KeyboardInterrupt."""
-        with patch("devtools_py.__main__.execute_json_commands", side_effect=KeyboardInterrupt):
+        with patch("devkitx.__main__.execute_json_commands", side_effect=KeyboardInterrupt):
             with patch("builtins.print") as mock_print:
                 result = main(["json", "pretty", "test.json"])
                 assert result == 130
@@ -55,7 +55,7 @@ class TestMainFunction:
     def test_main_unexpected_exception(self):
         """Test main handles unexpected exceptions."""
         with patch(
-            "devtools_py.__main__.execute_json_commands", side_effect=RuntimeError("Test error")
+            "devkitx.__main__.execute_json_commands", side_effect=RuntimeError("Test error")
         ):
             with patch("builtins.print") as mock_print:
                 result = main(["json", "pretty", "test.json"])
@@ -360,8 +360,8 @@ class TestSystemCommands:
 
     def test_system_info_table_format(self):
         """Test system info command with table format."""
-        with patch("devtools_py.system_utils.get_system_info") as mock_sys_info:
-            with patch("devtools_py.system_utils.get_python_info") as mock_py_info:
+        with patch("devkitx.system_utils.get_system_info") as mock_sys_info:
+            with patch("devkitx.system_utils.get_python_info") as mock_py_info:
                 mock_sys_info.return_value = {"os": "Linux"}
                 mock_py_info.return_value = {"python_version": "3.10"}
 
@@ -374,8 +374,8 @@ class TestSystemCommands:
 
     def test_system_info_json_format(self):
         """Test system info command with JSON format."""
-        with patch("devtools_py.system_utils.get_system_info") as mock_sys_info:
-            with patch("devtools_py.system_utils.get_python_info") as mock_py_info:
+        with patch("devkitx.system_utils.get_system_info") as mock_sys_info:
+            with patch("devkitx.system_utils.get_python_info") as mock_py_info:
                 mock_sys_info.return_value = {"os": "Linux"}
                 mock_py_info.return_value = {"python_version": "3.10"}
 
@@ -390,7 +390,7 @@ class TestSystemCommands:
 
     def test_system_info_error(self):
         """Test system info command with error."""
-        with patch("devtools_py.system_utils.get_system_info", side_effect=Exception("Test error")):
+        with patch("devkitx.system_utils.get_system_info", side_effect=Exception("Test error")):
             with patch("builtins.print") as mock_print:
                 result = main(["system", "info"])
                 assert result == 1
@@ -405,7 +405,7 @@ class TestSystemCommands:
         mock_result.stderr = ""
         mock_result.returncode = 0
 
-        with patch("devtools_py.system_utils.run_command", return_value=mock_result) as mock_run:
+        with patch("devkitx.system_utils.run_command", return_value=mock_result) as mock_run:
             with patch("builtins.print") as mock_print:
                 result = main(["system", "run", "echo", "hello"])
                 assert result == 0
@@ -420,7 +420,7 @@ class TestSystemCommands:
         mock_result.stderr = "error output"
         mock_result.returncode = 0
 
-        with patch("devtools_py.system_utils.run_command", return_value=mock_result):
+        with patch("devkitx.system_utils.run_command", return_value=mock_result):
             with patch("builtins.print") as mock_print:
                 result = main(["system", "run", "command"])
                 assert result == 0
@@ -438,7 +438,7 @@ class TestSystemCommands:
         mock_result.stderr = ""
         mock_result.returncode = 0
 
-        with patch("devtools_py.system_utils.run_command", return_value=mock_result) as mock_run:
+        with patch("devkitx.system_utils.run_command", return_value=mock_result) as mock_run:
             with patch("builtins.print"):
                 result = main(["system", "run", "--timeout", "30", "command"])
                 assert result == 0
@@ -448,7 +448,7 @@ class TestSystemCommands:
 
     def test_system_run_command_error(self):
         """Test system run command with error."""
-        with patch("devtools_py.system_utils.run_command", side_effect=Exception("Command failed")):
+        with patch("devkitx.system_utils.run_command", side_effect=Exception("Command failed")):
             with patch("builtins.print") as mock_print:
                 result = main(["system", "run", "command"])
                 assert result == 1
@@ -458,7 +458,7 @@ class TestSystemCommands:
 
     def test_system_find_exec_found(self):
         """Test system find executable when found."""
-        with patch("devtools_py.system_utils.find_executable", return_value="/usr/bin/python"):
+        with patch("devkitx.system_utils.find_executable", return_value="/usr/bin/python"):
             with patch("builtins.print") as mock_print:
                 result = main(["system", "find-exec", "python"])
                 assert result == 0
@@ -467,7 +467,7 @@ class TestSystemCommands:
 
     def test_system_find_exec_not_found(self):
         """Test system find executable when not found."""
-        with patch("devtools_py.system_utils.find_executable", return_value=None):
+        with patch("devkitx.system_utils.find_executable", return_value=None):
             with patch("builtins.print") as mock_print:
                 result = main(["system", "find-exec", "nonexistent"])
                 assert result == 1
@@ -478,7 +478,7 @@ class TestSystemCommands:
     def test_system_find_exec_error(self):
         """Test system find executable with error."""
         with patch(
-            "devtools_py.system_utils.find_executable", side_effect=Exception("Search failed")
+            "devkitx.system_utils.find_executable", side_effect=Exception("Search failed")
         ):
             with patch("builtins.print") as mock_print:
                 result = main(["system", "find-exec", "command"])
@@ -501,7 +501,7 @@ class TestSecurityCommands:
 
     def test_security_hash_command(self):
         """Test security hash command."""
-        with patch("devtools_py.security_utils.hash_data", return_value="abcd1234"):
+        with patch("devkitx.security_utils.hash_data", return_value="abcd1234"):
             with patch("builtins.print") as mock_print:
                 result = main(["security", "hash", "test data"])
                 assert result == 0
@@ -510,7 +510,7 @@ class TestSecurityCommands:
 
     def test_security_hash_with_algorithm(self):
         """Test security hash command with specific algorithm."""
-        with patch("devtools_py.security_utils.hash_data", return_value="hash_result") as mock_hash:
+        with patch("devkitx.security_utils.hash_data", return_value="hash_result") as mock_hash:
             result = main(["security", "hash", "data", "--algorithm", "sha512"])
             assert result == 0
 
@@ -518,7 +518,7 @@ class TestSecurityCommands:
 
     def test_security_hash_error(self):
         """Test security hash command with error."""
-        with patch("devtools_py.security_utils.hash_data", side_effect=Exception("Hash failed")):
+        with patch("devkitx.security_utils.hash_data", side_effect=Exception("Hash failed")):
             with patch("builtins.print") as mock_print:
                 result = main(["security", "hash", "data"])
                 assert result == 1
@@ -528,7 +528,7 @@ class TestSecurityCommands:
 
     def test_security_generate_secret_command(self):
         """Test security generate secret command."""
-        with patch("devtools_py.security_utils.generate_secret_key", return_value="secret123"):
+        with patch("devkitx.security_utils.generate_secret_key", return_value="secret123"):
             with patch("builtins.print") as mock_print:
                 result = main(["security", "generate-secret"])
                 assert result == 0
@@ -538,7 +538,7 @@ class TestSecurityCommands:
     def test_security_generate_secret_with_length(self):
         """Test security generate secret command with custom length."""
         with patch(
-            "devtools_py.security_utils.generate_secret_key", return_value="secret"
+            "devkitx.security_utils.generate_secret_key", return_value="secret"
         ) as mock_gen:
             result = main(["security", "generate-secret", "--length", "64"])
             assert result == 0
@@ -548,7 +548,7 @@ class TestSecurityCommands:
     def test_security_generate_secret_error(self):
         """Test security generate secret command with error."""
         with patch(
-            "devtools_py.security_utils.generate_secret_key",
+            "devkitx.security_utils.generate_secret_key",
             side_effect=Exception("Generation failed"),
         ):
             with patch("builtins.print") as mock_print:
@@ -560,7 +560,7 @@ class TestSecurityCommands:
 
     def test_security_generate_uuid_command(self):
         """Test security generate UUID command."""
-        with patch("devtools_py.security_utils.generate_uuid", return_value="uuid-1234"):
+        with patch("devkitx.security_utils.generate_uuid", return_value="uuid-1234"):
             with patch("builtins.print") as mock_print:
                 result = main(["security", "generate-uuid"])
                 assert result == 0
@@ -570,7 +570,7 @@ class TestSecurityCommands:
     def test_security_generate_uuid_error(self):
         """Test security generate UUID command with error."""
         with patch(
-            "devtools_py.security_utils.generate_uuid", side_effect=Exception("UUID failed")
+            "devkitx.security_utils.generate_uuid", side_effect=Exception("UUID failed")
         ):
             with patch("builtins.print") as mock_print:
                 result = main(["security", "generate-uuid"])
@@ -597,7 +597,7 @@ class TestTimeCommands:
 
         mock_date = datetime(2024, 1, 15, 14, 30)
 
-        with patch("devtools_py.time_utils.parse_date", return_value=mock_date):
+        with patch("devkitx.time_utils.parse_date", return_value=mock_date):
             with patch("builtins.print") as mock_print:
                 result = main(["time", "parse", "2024-01-15 14:30:00"])
                 assert result == 0
@@ -611,7 +611,7 @@ class TestTimeCommands:
 
         mock_date = datetime(2024, 1, 15)
 
-        with patch("devtools_py.time_utils.parse_date", return_value=mock_date) as mock_parse:
+        with patch("devkitx.time_utils.parse_date", return_value=mock_date) as mock_parse:
             result = main(["time", "parse", "15/01/2024", "--format", "%d/%m/%Y"])
             assert result == 0
 
@@ -619,7 +619,7 @@ class TestTimeCommands:
 
     def test_time_parse_error(self):
         """Test time parse command with error."""
-        with patch("devtools_py.time_utils.parse_date", side_effect=Exception("Parse failed")):
+        with patch("devkitx.time_utils.parse_date", side_effect=Exception("Parse failed")):
             with patch("builtins.print") as mock_print:
                 result = main(["time", "parse", "invalid date"])
                 assert result == 1
@@ -629,7 +629,7 @@ class TestTimeCommands:
 
     def test_time_duration_command(self):
         """Test time duration command."""
-        with patch("devtools_py.time_utils.format_duration", return_value="1h 30m"):
+        with patch("devkitx.time_utils.format_duration", return_value="1h 30m"):
             with patch("builtins.print") as mock_print:
                 result = main(["time", "duration", "5400"])
                 assert result == 0
@@ -639,7 +639,7 @@ class TestTimeCommands:
     def test_time_duration_error(self):
         """Test time duration command with error."""
         with patch(
-            "devtools_py.time_utils.format_duration", side_effect=Exception("Format failed")
+            "devkitx.time_utils.format_duration", side_effect=Exception("Format failed")
         ):
             with patch("builtins.print") as mock_print:
                 result = main(["time", "duration", "3600"])
@@ -650,7 +650,7 @@ class TestTimeCommands:
 
     def test_time_business_day_command(self):
         """Test time business day command."""
-        with patch("devtools_py.time_utils.is_business_day", return_value=True):
+        with patch("devkitx.time_utils.is_business_day", return_value=True):
             with patch("builtins.print") as mock_print:
                 result = main(["time", "business-day", "2024-01-15"])
                 assert result == 0
@@ -659,7 +659,7 @@ class TestTimeCommands:
 
     def test_time_business_day_not_business(self):
         """Test time business day command for non-business day."""
-        with patch("devtools_py.time_utils.is_business_day", return_value=False):
+        with patch("devkitx.time_utils.is_business_day", return_value=False):
             with patch("builtins.print") as mock_print:
                 result = main(["time", "business-day", "2024-01-14"])  # Sunday
                 assert result == 0
@@ -689,7 +689,7 @@ class TestValidationCommands:
 
     def test_validation_range_valid(self):
         """Test validation range command with valid value."""
-        with patch("devtools_py.validation_utils.validate_range", return_value=True):
+        with patch("devkitx.validation_utils.validate_range", return_value=True):
             with patch("builtins.print") as mock_print:
                 result = main(["validate", "range", "5", "--min", "1", "--max", "10"])
                 assert result == 0
@@ -698,7 +698,7 @@ class TestValidationCommands:
 
     def test_validation_range_invalid(self):
         """Test validation range command with invalid value."""
-        with patch("devtools_py.validation_utils.validate_range", return_value=False):
+        with patch("devkitx.validation_utils.validate_range", return_value=False):
             with patch("builtins.print") as mock_print:
                 result = main(["validate", "range", "15", "--min", "1", "--max", "10"])
                 assert result == 0
@@ -708,7 +708,7 @@ class TestValidationCommands:
     def test_validation_range_error(self):
         """Test validation range command with error."""
         with patch(
-            "devtools_py.validation_utils.validate_range",
+            "devkitx.validation_utils.validate_range",
             side_effect=Exception("Validation failed"),
         ):
             with patch("builtins.print") as mock_print:
@@ -720,7 +720,7 @@ class TestValidationCommands:
 
     def test_validation_length_valid(self):
         """Test validation length command with valid text."""
-        with patch("devtools_py.validation_utils.validate_length", return_value=True):
+        with patch("devkitx.validation_utils.validate_length", return_value=True):
             with patch("builtins.print") as mock_print:
                 result = main(["validate", "length", "hello", "--min", "3", "--max", "10"])
                 assert result == 0
@@ -729,7 +729,7 @@ class TestValidationCommands:
 
     def test_validation_length_invalid(self):
         """Test validation length command with invalid text."""
-        with patch("devtools_py.validation_utils.validate_length", return_value=False):
+        with patch("devkitx.validation_utils.validate_length", return_value=False):
             with patch("builtins.print") as mock_print:
                 result = main(["validate", "length", "hi", "--min", "5"])
                 assert result == 0
@@ -739,7 +739,7 @@ class TestValidationCommands:
     def test_validation_length_error(self):
         """Test validation length command with error."""
         with patch(
-            "devtools_py.validation_utils.validate_length",
+            "devkitx.validation_utils.validate_length",
             side_effect=Exception("Length check failed"),
         ):
             with patch("builtins.print") as mock_print:

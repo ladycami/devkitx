@@ -7,7 +7,7 @@ from pathlib import Path
 
 def run_cli_command(*args: str) -> subprocess.CompletedProcess[str]:
     """Run a CLI command and return the result."""
-    cmd = [sys.executable, "-m", "devtools_py"] + list(args)
+    cmd = [sys.executable, "-m", "devkitx"] + list(args)
     return subprocess.run(
         cmd, capture_output=True, text=True, cwd=Path(__file__).parent.parent / "src"
     )

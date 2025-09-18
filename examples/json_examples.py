@@ -2,7 +2,7 @@
 """
 JSON Utilities Examples
 
-This module demonstrates practical usage of devtools_py.json_utils
+This module demonstrates practical usage of devkitx.json_utils
 including common patterns, edge cases, and limitations.
 """
 
@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from devtools_py.json_utils import (
+from devkitx.json_utils import (
     load_json,
     save_json,
     merge_json,

@@ -2,7 +2,7 @@
 """
 File Utilities Examples
 
-This module demonstrates practical usage of devtools_py.file_utils
+This module demonstrates practical usage of devkitx.file_utils
 including file operations, path handling, and cross-platform compatibility.
 """
 
@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import List, Dict, Any, Generator
 
-from devtools_py.file_utils import (
+from devkitx.file_utils import (
     read_file,
     write_file,
     append_file,

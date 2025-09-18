@@ -4,18 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "devkitx"
-version = "1.0.0"
-description = "DevKitX: Comprehensive quality-of-life utilities for Python developers including JSON, HTTP, async, security, validation, and more."
+version = "1.0.1"
+description = "A pragmatic Python toolkit: HTTP, JSON, async bridges, security, CLI."
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "LadyCami", email = "ladycami@serityops.com" }]
+authors = [{ name = "LadyCami" }]
 requires-python = ">=3.10"
 dependencies = [
-  "httpx>=0.27,<0.28",
-  "click>=8.0.0",
-  "rich>=13.0.0",
-  "bcrypt>=4.0.0",
-  "PyJWT>=2.8.0"
+  "typing-extensions>=4.6; python_version<'3.11'"
 ]
 keywords = [
   "utilities", "developer-tools", "json", "logging", "cli", "http", "files", 
@@ -25,7 +21,7 @@ keywords = [
   "progress-bars", "colored-output", "cross-platform", "type-safe"
 ]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
@@ -46,31 +42,41 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ladycami/devtools-py"
-Issues = "https://github.com/ladycami/devtools-py/issues"
-Documentation = "https://github.com/ladycami/devtools-py#readme"
-Repository = "https://github.com/ladycami/devtools-py.git"
+Homepage = "https://github.com/ladycami/devkitx"
+Issues = "https://github.com/ladycami/devkitx/issues"
+Docs = "https://github.com/ladycami/devkitx#readme"
 
 [project.scripts]
-devkitx = "devtools_py.__main__:main"
+devkitx = "devkitx.__main__:main"
 
 [project.optional-dependencies]
+http = ["httpx>=0.27,<0.28"]
+cli = ["click>=8.1", "rich>=13.7"]
+jwt = ["PyJWT[crypto]>=2.8"]
+bcrypt = ["bcrypt>=4.1"]
+yaml = ["pyyaml>=6.0.1"]
+toml = ["tomli>=2.0.1; python_version<'3.11'", "tomli-w>=1.0.0"]
+
 dev = [
-  "pytest>=8",
-  "pytest-cov>=5",
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "pytest-asyncio>=0.23",
+  "hypothesis>=6.0",
   "mypy>=1.10",
   "ruff>=0.5",
-  "black>=24.8",
-  "types-requests",
-  "build>=1.0.0",
-  "twine>=5.0.0",
+  "black>=24.0",
+  "build>=1.2",
+  "twine>=5.1",
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/devtools_py", "README.md", "LICENSE"]
+include = ["src/devkitx", "README.md", "LICENSE"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/devtools_py"]
+packages = ["src/devkitx"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/devkitx/py.typed" = "devkitx/py.typed"
 
 [tool.ruff]
 line-length = 100
@@ -92,4 +98,58 @@ no_implicit_optional = true
 pretty = true
 
 [tool.pytest.ini_options]
-addopts = "-q --cov=devtools_py --cov-report=term-missing"
+addopts = [
+  "-q",
+  "--strict-markers",
+  "--strict-config",
+  "--cov=devkitx",
+  "--cov-report=term-missing",
+  "--cov-report=html",
+  "--cov-fail-under=30",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "integration: marks tests as integration tests",
+  "unit: marks tests as unit tests",
+]
+filterwarnings = [
+  "error",
+  "ignore::UserWarning",
+  "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src/devkitx"]
+omit = [
+  "src/devkitx/__main__.py",
+  "src/devkitx/cli_utils.py",
+  "src/devkitx/config_utils.py",
+  "src/devkitx/data_utils.py",
+  "src/devkitx/dev_utils.py",
+  "src/devkitx/file_utils.py",
+  "src/devkitx/log_utils.py",
+  "src/devkitx/security_utils.py",
+  "src/devkitx/string_utils.py",
+  "src/devkitx/system_utils.py",
+  "src/devkitx/time_utils.py",
+  "src/devkitx/validation_utils.py",
+  "src/devkitx/json_utils.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if 0:",
+  "if __name__ == .__main__.:",
+  "class .*\\bProtocol\\):",
+  "@(abc\\.)?abstractmethod",
+]

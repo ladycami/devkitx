@@ -4,7 +4,7 @@ import time
 import pytest
 from datetime import datetime, timedelta
 
-from devtools_py.time_utils import (
+from devkitx.time_utils import (
     parse_date,
     format_duration,
     get_timezone_offset,

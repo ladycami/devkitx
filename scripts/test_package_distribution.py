@@ -123,7 +123,7 @@ class PackageDistributionTester:
         """Create a clean virtual environment for testing."""
         print("🏗️  Creating clean test environment...")
         
-        temp_dir = Path(tempfile.mkdtemp(prefix="devtools_py_dist_test_"))
+        temp_dir = Path(tempfile.mkdtemp(prefix="devkitx_dist_test_"))
         venv_path = temp_dir / "test_venv"
         
         # Create virtual environment
@@ -182,21 +182,21 @@ class PackageDistributionTester:
         python_exe = self.get_python_executable(venv_path)
         
         modules_to_test = [
-            "devtools_py",
-            "devtools_py.json_utils",
-            "devtools_py.file_utils",
-            "devtools_py.string_utils",
-            "devtools_py.config_utils",
-            "devtools_py.system_utils",
-            "devtools_py.security_utils",
-            "devtools_py.time_utils",
-            "devtools_py.validation_utils",
-            "devtools_py.data_utils",
-            "devtools_py.async_utils",
-            "devtools_py.dev_utils",
-            "devtools_py.cli_utils",
-            "devtools_py.http_utils",
-            "devtools_py.log_utils",
+            "devkitx",
+            "devkitx.json_utils",
+            "devkitx.file_utils",
+            "devkitx.string_utils",
+            "devkitx.config_utils",
+            "devkitx.system_utils",
+            "devkitx.security_utils",
+            "devkitx.time_utils",
+            "devkitx.validation_utils",
+            "devkitx.data_utils",
+            "devkitx.async_utils",
+            "devkitx.dev_utils",
+            "devkitx.cli_utils",
+            "devkitx.http_utils",
+            "devkitx.log_utils",
         ]
         
         import_results = {}
@@ -231,22 +231,22 @@ class PackageDistributionTester:
         cli_tests = [
             {
                 "name": "help_command",
-                "cmd": [str(python_exe), "-m", "devtools_py", "--help"],
+                "cmd": [str(python_exe), "-m", "devkitx", "--help"],
                 "description": "Testing CLI help command"
             },
             {
                 "name": "string_convert",
-                "cmd": [str(python_exe), "-m", "devtools_py", "string", "convert", "--to", "snake", "TestString"],
+                "cmd": [str(python_exe), "-m", "devkitx", "string", "convert", "--to", "snake", "TestString"],
                 "description": "Testing string conversion CLI command"
             },
             {
                 "name": "system_info",
-                "cmd": [str(python_exe), "-m", "devtools_py", "system", "info"],
+                "cmd": [str(python_exe), "-m", "devkitx", "system", "info"],
                 "description": "Testing system info CLI command"
             },
             {
                 "name": "security_hash",
-                "cmd": [str(python_exe), "-m", "devtools_py", "security", "hash", "test_data"],
+                "cmd": [str(python_exe), "-m", "devkitx", "security", "hash", "test_data"],
                 "description": "Testing security hash CLI command"
             }
         ]
@@ -283,10 +283,10 @@ class PackageDistributionTester:
         python_exe = self.get_python_executable(venv_path)
         
         test_script = '''
-import devtools_py.json_utils as json_utils
-import devtools_py.string_utils as string_utils
-import devtools_py.security_utils as security_utils
-import devtools_py.system_utils as system_utils
+import devkitx.json_utils as json_utils
+import devkitx.string_utils as string_utils
+import devkitx.security_utils as security_utils
+import devkitx.system_utils as system_utils
 import tempfile
 import json
 from pathlib import Path

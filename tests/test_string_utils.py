@@ -1,6 +1,6 @@
 """Tests for string_utils module."""
 
-from devtools_py.string_utils import (
+from devkitx.string_utils import (
     to_pascal_case,
     to_kebab_case,
     validate_email,

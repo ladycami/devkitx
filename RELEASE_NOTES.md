@@ -56,7 +56,7 @@ pip install devkitx
 
 #### String Manipulation
 ```python
-from devtools_py import string_utils
+from devkitx import string_utils
 
 # Case conversions
 string_utils.to_snake_case("MyVariableName")  # "my_variable_name"
@@ -69,7 +69,7 @@ string_utils.validate_url("https://example.com")  # True
 
 #### Configuration Management
 ```python
-from devtools_py.config_utils import ConfigManager
+from devkitx.config_utils import ConfigManager
 
 config = ConfigManager(["config.json", "config.yaml"])
 config.load()

@@ -13,19 +13,19 @@ import time
 from pathlib import Path
 
 # Import all modules from the PyPI package
-import devtools_py.string_utils as string_utils
-import devtools_py.json_utils as json_utils
-import devtools_py.file_utils as file_utils
-import devtools_py.data_utils as data_utils
-import devtools_py.config_utils as config_utils
-import devtools_py.system_utils as system_utils
-import devtools_py.security_utils as security_utils
-import devtools_py.time_utils as time_utils
-import devtools_py.validation_utils as validation_utils
-import devtools_py.cli_utils as cli_utils
-import devtools_py.http_utils as http_utils
-import devtools_py.async_utils as async_utils
-import devtools_py.dev_utils as dev_utils
+import devkitx.string_utils as string_utils
+import devkitx.json_utils as json_utils
+import devkitx.file_utils as file_utils
+import devkitx.data_utils as data_utils
+import devkitx.config_utils as config_utils
+import devkitx.system_utils as system_utils
+import devkitx.security_utils as security_utils
+import devkitx.time_utils as time_utils
+import devkitx.validation_utils as validation_utils
+import devkitx.cli_utils as cli_utils
+import devkitx.http_utils as http_utils
+import devkitx.async_utils as async_utils
+import devkitx.dev_utils as dev_utils
 
 
 def demo_string_utilities():

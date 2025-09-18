@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-09-16
+
+### Changed
+- Finalized rename to `devkitx` across package, imports, docs, and URLs
+- Marked package Development Status: Beta (instead of Production/Stable)
+- Curated top-level exports; added `py.typed` marker file
+- Updated project URLs to point to correct `ladycami/devkitx` repository
+
+### Added
+- HTTP clients with sensible defaults (10s connect, 15s read timeouts)
+- Retry helper with exponential backoff and jitter
+- Async bridges for safe sync/async conversion with event loop detection
+- Concurrency limiter for async operations using semaphores
+- JWT utilities with safe defaults (HS256, required exp/iat claims)
+- JSON flattening utility for nested structures
+- Minimal test suite with CI pipeline (ruff, mypy, pytest)
+- Optional dependency extras: http, cli, jwt, bcrypt, yaml, toml, dev
+
+### Fixed
+- Import/package name mismatches in documentation and examples
+- Incorrect project links in PyPI metadata
+- Missing type annotation marker file
+- Package structure to follow Python best practices
+
 ## [1.0.0] - 2025-09-15
 
 ### Added
@@ -44,15 +68,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-world usage scenarios and demos
 - CLI command documentation
 
+## [1.0.1] - 2025-09-16
+
+### Changed
+- Finalized rename to `devkitx` across package, imports, docs, and URLs
+- Updated package development status from "Production/Stable" to "Beta" 
+- Curated top-level exports with graceful handling of optional dependencies
+- Added `py.typed` marker file for proper type annotation support
+
+### Added
+- HTTP clients with sensible defaults (10s connect, 15s read timeouts)
+- Connection limits to prevent resource exhaustion (10 keepalive, 100 total)
+- Retry helper with exponential backoff and jitter
+- Async bridge functions for safe sync/async conversion with event loop detection
+- Async concurrency limiter using semaphore-based control
+- JSON flattening utility with configurable separators
+- JWT utilities with secure defaults (HS256, required exp/iat claims)
+- Optional dependency groups (extras): http, cli, jwt, bcrypt, yaml, toml
+- Minimal test suite with CI/CD pipeline (ruff, mypy, pytest)
+- Security documentation with clear scope and limitations
+
+### Fixed
+- Import/package name mismatches - all examples now use correct `devkitx` imports
+- Project URLs now point to correct `ladycami/devkitx` repository
+- Changelog entries now have proper dates instead of "Upcoming" status
+- Package structure follows Python packaging best practices
+
+### Security
+- JWT tokens now require exp and iat claims by default
+- HTTP clients use secure connection limits to prevent resource exhaustion
+- Clear documentation of security feature scope and limitations
+
 ## [Unreleased]
 
 ### Planned for v1.1.0
-- API surface reorganization with curated top-level exports
-- Optional dependency groups (extras) for lighter installations
 - Enhanced property-based testing with Hypothesis
-- Improved mypy compliance and type checking
 - Additional timeout and retry configurations
-- Expanded security documentation and best practices
+- Expanded async utilities and concurrency helpers
 
 ---
 

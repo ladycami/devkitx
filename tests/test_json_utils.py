@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 from hypothesis import given, strategies as st
 
-from devtools_py import json_utils
+from devkitx import json_utils
 
 
 class TestLoadJson:
@@ -183,7 +183,7 @@ class TestPrettyJson:
         """Test pretty JSON with color when pygments is not available."""
         data = {"key": "value"}
 
-        with patch("devtools_py.json_utils.highlight", side_effect=ImportError):
+        with patch("devkitx.json_utils.highlight", side_effect=ImportError):
             result = json_utils.pretty_json(data, color=True)
 
             # Should fall back to plain JSON

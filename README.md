@@ -1,477 +1,308 @@
 # DevKitX
 
-**Comprehensive quality-of-life utilities for Python developers**
+**A pragmatic Python toolkit: HTTP, JSON, async bridges, security, CLI**
 
-A modern, type-safe toolkit providing essential utilities for common development tasks including JSON manipulation, file operations, logging, CLI utilities, HTTP clients, data processing, string manipulation, configuration management, system operations, async utilities, development tools, security functions, time utilities, and validation.
+DevKitX is a modern, type-safe toolkit providing essential utilities for common development tasks. This package was previously named `devtools-py` but has been renamed to `devkitx` to avoid confusion with Samuel Colvin's `devtools` package (which focuses on pretty-printing and debugging).
+
+> **Note**: This is **not** the same as Samuel Colvin's `devtools` package. DevKitX provides a broader set of utilities including HTTP clients, async bridges, security functions, and more.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Typed](https://img.shields.io/badge/typed-yes-brightgreen.svg)](https://mypy-lang.org/)
+[![Development Status](https://img.shields.io/badge/status-beta-orange.svg)](https://pypi.org/project/devkitx/)
 
 ## Features
 
 - 🚀 **Modern Python**: Built for Python 3.10+ with full type annotations
-- 📦 **Comprehensive**: 14+ utility modules covering common development needs
-- ⚡ **Async Support**: Async-compatible utilities and bridges between sync/async code
-- 🔒 **Security**: Built-in security utilities for hashing, JWT tokens, and input sanitization
-- 🛠️ **Developer Tools**: Profiling, debugging, and testing utilities
-- 🌐 **HTTP Client**: Robust HTTP utilities with retry logic and async support
-- 📝 **Configuration**: Multi-format config management (JSON, YAML, TOML, .env)
-- 🎨 **CLI Tools**: Rich terminal output with colors, progress bars, and interactive prompts
-- 🔧 **System Utils**: Cross-platform system information and process management
-- ✅ **Validation**: Comprehensive input validation and schema checking
+- ⚡ **Async Support**: Bridges between sync/async code with safe event loop handling
+- 🌐 **HTTP Client**: HTTP utilities with safe defaults, timeouts, and retry logic
+- 📦 **JSON Utils**: Flatten nested JSON structures with configurable separators
+- 🔒 **Security**: JWT tokens with safe defaults and proper claim validation
+- 🎯 **Minimal Core**: Lightweight base package with optional extras for specific features
 
 ## Installation
+
+### Basic Installation
 
 ```bash
 pip install devkitx
 ```
 
+### Installation with Optional Features
+
+DevKitX uses optional dependencies to keep the core package lightweight. Install only the features you need:
+
+| Extra | Dependencies | Features |
+|-------|-------------|----------|
+| `http` | `httpx` | HTTP clients with safe defaults and retry logic |
+| `cli` | `click`, `rich` | Command-line interfaces and rich terminal output |
+| `jwt` | `PyJWT[crypto]` | JWT token generation and verification |
+| `bcrypt` | `bcrypt` | Password hashing utilities |
+| `yaml` | `pyyaml` | YAML configuration support |
+| `toml` | `tomli`, `tomli-w` | TOML configuration support |
+
+```bash
+# Install with HTTP utilities
+pip install "devkitx[http]"
+
+# Install with multiple extras
+pip install "devkitx[http,jwt,cli]"
+
+# Install all extras
+pip install "devkitx[http,cli,jwt,bcrypt,yaml,toml]"
+
+# Development installation
+pip install "devkitx[dev]"
+```
+
 ## Quick Start
 
 ```python
-from devtools_py import json_utils, string_utils, http_utils, config_utils
+# Core utilities (always available)
+from devkitx import flatten_json, async_to_sync, sync_to_async
 
-# JSON operations with enhanced features
-data = json_utils.load_json("config.json")
-flat_data = json_utils.flatten_json(data)
-pretty_output = json_utils.pretty_json(data, color=True)
-
-# String manipulation and validation
-snake_case = string_utils.to_snake_case("CamelCaseString")
-is_valid_email = string_utils.validate_email("user@example.com")
-clean_filename = string_utils.sanitize_filename("file<name>.txt")
-
-# HTTP requests with automatic retries
-response = http_utils.api_request("GET", "https://api.example.com/data")
-client = http_utils.BaseAPIClient("https://api.example.com")
-users = client.get("/users")
-
-# Configuration management
-config = config_utils.ConfigManager(["config.json", "config.yaml"])
-config.load()
-database_url = config.get("database.url", "sqlite:///default.db")
-```
-
-## Module Overview
-
-### Core Utilities
-
-#### JSON Utils (`json_utils`)
-Enhanced JSON operations with pretty printing and flattening:
-
-```python
-from devtools_py import json_utils
-
-# Load and save JSON with automatic formatting
-data = json_utils.load_json("config.json")
-json_utils.save_json(data, "backup.json", pretty=True)
-
-# Flatten nested JSON for easier processing
-nested = {"user": {"profile": {"name": "John", "age": 30}}}
-flat = json_utils.flatten_json(nested)
+# Flatten nested JSON structures
+data = {"user": {"profile": {"name": "John", "age": 30}}}
+flat_data = flatten_json(data)
 # Result: {"user.profile.name": "John", "user.profile.age": 30}
 
-# Pretty print with optional syntax highlighting
-print(json_utils.pretty_json(data, color=True))
-```
-
-#### File Utils (`file_utils`)
-Cross-platform file operations with safety features:
-
-```python
-from devtools_py import file_utils
-
-# Find files with glob patterns or exact names
-python_files = file_utils.find_file("*.py", "src")
-config_file = file_utils.find_file("config.json", ".")
-
-# Safe file operations
-file_utils.ensure_dir("output/data")
-file_utils.atomic_write("important.json", '{"key": "value"}')
-file_utils.copy_file("source.txt", "backup.txt", overwrite=False)
-
-# Check permissions
-if file_utils.is_writable("output.txt"):
-    # Safe to write
-    pass
-```
-
-#### String Utils (`string_utils`)
-Comprehensive string manipulation and validation:
-
-```python
-from devtools_py import string_utils
-
-# Case conversions
-string_utils.to_snake_case("CamelCase")      # "camel_case"
-string_utils.to_camel_case("snake_case")     # "snakeCase"
-string_utils.to_pascal_case("kebab-case")    # "KebabCase"
-string_utils.to_kebab_case("PascalCase")     # "pascal-case"
-
-# Validation
-string_utils.validate_email("user@example.com")  # True
-string_utils.validate_url("https://example.com") # True
-
-# Text processing
-string_utils.sanitize_filename("file<name>.txt")  # "file_name_.txt"
-string_utils.truncate_text("Long text here", 10)  # "Long te..."
-urls = string_utils.extract_urls("Visit https://example.com for info")
-```
-
-### Advanced Utilities
-
-#### HTTP Utils (`http_utils`)
-Robust HTTP client with retry logic and async support:
-
-```python
-from devtools_py import http_utils
+# Bridge between sync and async code
 import asyncio
 
-# Synchronous requests with automatic retries
-response = http_utils.api_request(
-    "POST", 
-    "https://api.example.com/users",
-    json_body={"name": "John", "email": "john@example.com"},
-    headers={"Authorization": "Bearer token"},
-    retries=3
-)
-
-# API client for consistent base URL and headers
-client = http_utils.BaseAPIClient(
-    "https://api.example.com",
-    headers={"Authorization": "Bearer token"}
-)
-users = client.get("/users")
-new_user = client.post("/users", json_body={"name": "Jane"})
-
-# Async support
-async def fetch_data():
-    async_client = http_utils.AsyncAPIClient("https://api.example.com")
-    return await async_client.get("/data")
-
-# Batch requests with concurrency control
-requests = [
-    ("GET", "https://api.example.com/users/1", {}),
-    ("GET", "https://api.example.com/users/2", {}),
-]
-responses = await http_utils.async_batch_requests(requests, concurrency_limit=5)
-```
-
-#### Config Utils (`config_utils`)
-Multi-format configuration management:
-
-```python
-from devtools_py import config_utils
-
-# Load from multiple sources with precedence
-config = config_utils.ConfigManager([
-    "config.json",
-    "config.yaml", 
-    "local.env"
-])
-config.load()
-
-# Type-safe configuration access
-database_url = config.get("database.url", "sqlite:///default.db", str)
-debug_mode = config.get("debug", False, bool)
-max_connections = config.get("database.max_connections", 10, int)
-
-# Environment variable integration
-config.merge_env_vars("MYAPP_")  # Loads MYAPP_* env vars
-
-# Save configuration
-config.set("new.setting", "value")
-config.save("updated_config.json")
-```
-
-#### Security Utils (`security_utils`)
-Security and cryptographic utilities:
-
-```python
-from devtools_py import security_utils
-
-# Password hashing with bcrypt
-hashed = security_utils.hash_password("my_secure_password")
-is_valid = security_utils.verify_password("my_secure_password", hashed)
-
-# Secure key generation
-secret_key = security_utils.generate_secret_key(32)
-uuid = security_utils.generate_uuid()
-
-# Data hashing
-file_hash = security_utils.hash_data(b"file content", "sha256")
-
-# JWT tokens
-payload = {"user_id": 123, "role": "admin"}
-token = security_utils.generate_jwt_token(payload, secret_key, expires_in=3600)
-decoded = security_utils.verify_jwt_token(token, secret_key)
-
-# Input sanitization
-clean_input = security_utils.sanitize_input("<script>alert('xss')</script>")
-```
-
-#### Async Utils (`async_utils`)
-Bridge between sync and async code:
-
-```python
-from devtools_py import async_utils
-import asyncio
-
-# Convert sync functions to async
-def slow_sync_function(x):
-    time.sleep(1)
-    return x * 2
-
-async_func = async_utils.sync_to_async(slow_sync_function)
-result = await async_func(5)  # Non-blocking
-
-# Convert async functions to sync
 async def async_function(x):
     await asyncio.sleep(0.1)
     return x * 2
 
-sync_func = async_utils.async_to_sync(async_function)
-result = sync_func(5)  # Blocks until complete
+# Convert async function to sync
+sync_func = async_to_sync(async_function)
+result = sync_func(5)  # Works without event loop
 
-# Concurrency control
-tasks = [fetch_data(url) for url in urls]
-results = await async_utils.gather_with_limit(5, *tasks)  # Max 5 concurrent
+# Convert sync function to async
+def slow_function(x):
+    import time
+    time.sleep(0.1)
+    return x * 2
 
-# Retry with exponential backoff
-result = await async_utils.retry_async(
-    unreliable_api_call,
-    retries=3,
-    delay=1.0,
-    exceptions=(ConnectionError,)
+async_func = sync_to_async(slow_function)
+result = await async_func(5)  # Non-blocking
+```
+
+### HTTP Utilities (requires `http` extra)
+
+```python
+# Install with: pip install "devkitx[http]"
+from devkitx import make_client, make_async_client
+
+# HTTP client with safe defaults
+client = make_client(base_url="https://api.example.com")
+response = client.get("/users")
+
+# Async HTTP client
+async def fetch_data():
+    async_client = make_async_client()
+    response = await async_client.get("https://api.example.com/data")
+    return response.json()
+```
+
+### JWT Utilities (requires `jwt` extra)
+
+```python
+# Install with: pip install "devkitx[jwt]"
+from devkitx.security_utils.jwt_ import generate_jwt_token, verify_jwt_token
+
+# Generate JWT with safe defaults
+payload = {"user_id": 123, "role": "admin"}
+token = generate_jwt_token(
+    payload, 
+    secret="your-secret-key",
+    expires_in=3600,  # 1 hour
+    issuer="your-app",
+    audience="your-users"
 )
 
-# Async file operations
-async_fm = async_utils.AsyncFileManager()
-content = await async_fm.read_text("large_file.txt")
-await async_fm.write_text("output.txt", "Hello, World!")
+# Verify JWT token
+try:
+    decoded = verify_jwt_token(
+        token, 
+        secret="your-secret-key",
+        issuer="your-app",
+        audience="your-users"
+    )
+    print(f"User ID: {decoded['user_id']}")
+except Exception as e:
+    print(f"Invalid token: {e}")
 ```
 
-#### Development Utils (`dev_utils`)
-Debugging and development tools:
+## Core Utilities
+
+### JSON Utilities
+
+Flatten nested JSON structures for easier processing:
 
 ```python
-from devtools_py import dev_utils
+from devkitx import flatten_json
 
-# Function timing and profiling
-@dev_utils.time_function
-@dev_utils.profile_memory
-def expensive_operation():
-    return [i**2 for i in range(10000)]
+# Flatten nested JSON structures
+nested = {"user": {"profile": {"name": "John", "age": 30}}}
+flat = flatten_json(nested)
+# Result: {"user.profile.name": "John", "user.profile.age": 30}
 
-# Pretty printing complex objects
-complex_data = {"users": [{"id": 1, "nested": {"deep": "value"}}]}
-print(dev_utils.pretty_print_object(complex_data, max_depth=3))
+# Custom separator
+flat_custom = flatten_json(nested, sep="_")
+# Result: {"user_profile_name": "John", "user_profile_age": 30}
 
-# Test data generation
-schema = {"name": str, "age": int, "active": bool}
-test_data = dev_utils.generate_test_data(schema, count=10)
-
-# Function benchmarking
-def method1(): return sum(range(1000))
-def method2(): return sum([i for i in range(1000)])
-
-results = dev_utils.benchmark_functions(method1, method2, iterations=1000)
-print(f"method1: {results['method1']:.4f}s avg")
-
-# Mock HTTP server for testing
-responses = {
-    "/api/users": {"users": [{"id": 1, "name": "John"}]},
-    "/api/status": {"status": "ok"}
-}
-server = dev_utils.MockHTTPServer(responses)
-url = server.start()
-# Make requests to url + "/api/users"
-server.stop()
+# Works with arrays too
+data = {"items": [{"id": 1, "name": "first"}, {"id": 2, "name": "second"}]}
+flat = flatten_json(data)
+# Result: {"items.0.id": 1, "items.0.name": "first", "items.1.id": 2, "items.1.name": "second"}
 ```
 
-### System and Validation
+### Async Bridge Utilities
 
-#### System Utils (`system_utils`)
-Cross-platform system operations:
-
-```python
-from devtools_py import system_utils
-
-# System information
-sys_info = system_utils.get_system_info()
-python_info = system_utils.get_python_info()
-
-# Command execution with timeout
-result = system_utils.run_command(
-    ["python", "--version"], 
-    timeout=5.0,
-    cwd="/path/to/directory"
-)
-
-# Async command execution
-result = await system_utils.run_command_async(["ls", "-la"])
-
-# Utility functions
-executable_path = system_utils.find_executable("python")
-env_vars = system_utils.get_env_vars("PYTHON_")
-is_root = system_utils.is_admin()
-free_port = system_utils.get_free_port(8000)
-```
-
-#### Validation Utils (`validation_utils`)
-Comprehensive input validation:
+Convert between sync and async functions safely:
 
 ```python
-from devtools_py import validation_utils
+from devkitx import async_to_sync, sync_to_async
+import asyncio
 
-# Schema validation
-schema = {"name": str, "age": int, "active": bool}
-data = {"name": "John", "age": 30, "active": True}
-errors = validation_utils.validate_schema(data, schema)
+# Convert async function to sync
+async def fetch_data(url):
+    # Simulate async HTTP request
+    await asyncio.sleep(0.1)
+    return f"Data from {url}"
 
-# Range and length validation
-validation_utils.validate_range(25, 18, 65)        # True
-validation_utils.validate_length("hello", 3, 10)   # True
-validation_utils.validate_regex("test123", r"^\w+\d+$")  # True
+sync_fetch = async_to_sync(fetch_data)
+result = sync_fetch("https://api.example.com")  # Works without event loop
 
-# JSON schema validation
-json_schema = {
-    "type": "object",
-    "properties": {
-        "name": {"type": "string", "minLength": 1},
-        "age": {"type": "integer", "minimum": 0}
-    },
-    "required": ["name"]
-}
-errors = validation_utils.validate_json_schema(data, json_schema)
-
-# Rule-based validator
-validator = validation_utils.Validator()
-validator.add_rule("email", lambda x: "@" in str(x), "Invalid email")
-validator.add_rule("age", lambda x: isinstance(x, int) and x >= 0, "Invalid age")
-errors = validator.validate({"email": "test@example.com", "age": 25})
-```
-
-#### Time Utils (`time_utils`)
-Date and time utilities:
-
-```python
-from devtools_py import time_utils
-from datetime import datetime
-
-# Flexible date parsing
-date = time_utils.parse_date("2024-01-15")
-date = time_utils.parse_date("15/01/2024", ["%d/%m/%Y"])
-
-# Duration formatting
-duration = time_utils.format_duration(3661)  # "1h 1m 1.0s"
-
-# Business day calculations
-is_weekday = time_utils.is_business_day(datetime(2024, 1, 15))
-next_workday = time_utils.next_business_day(datetime(2024, 1, 12))
-
-# Cron scheduling
-next_run = time_utils.cron_next_run("0 9 * * 1-5")  # 9 AM weekdays
-
-# Timer utility
-timer = time_utils.Timer()
-timer.start()
-# ... do work ...
-elapsed = timer.stop()
-
-# Or as context manager
-with time_utils.Timer() as timer:
-    # ... do work ...
-    pass
-print(f"Elapsed: {timer.elapsed():.2f}s")
-```
-
-### CLI and Logging
-
-#### CLI Utils (`cli_utils`)
-Rich terminal interfaces:
-
-```python
-from devtools_py import cli_utils
-
-# Interactive prompts
-password = cli_utils.password_prompt("Enter password:", confirm=True)
-selected = cli_utils.multi_select(["option1", "option2", "option3"])
-
-# Progress indicators
-for item in cli_utils.progress_bar(range(100), "Processing"):
-    # Do work with item
-    pass
-
-with cli_utils.spinner("Loading data..."):
-    # Long running operation
-    time.sleep(2)
-
-# Colored output and tables
-print(cli_utils.colored_text("Success!", "green", bold=True))
-print(cli_utils.colored_text("Warning", "yellow"))
-
-data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-table = cli_utils.table_format(data, headers=["Name", "Age"])
-print(table)
-```
-
-#### Log Utils (`log_utils`)
-Enhanced logging setup:
-
-```python
-from devtools_py import log_utils
-import logging
-
-# Quick logger setup
-logger = log_utils.setup_logging("INFO", to_file="app.log")
-logger = log_utils.setup_logging("DEBUG", json=True, use_loguru=True)
-
-# Time logging context manager
-with log_utils.log_time("database_query"):
-    # Database operation
-    pass
-# Logs: "database_query took 123.45 ms"
-
-# Function call logging
-@log_utils.log_calls
+# Convert sync function to async
 def process_data(data):
-    return {"processed": len(data)}
+    # Simulate CPU-intensive work
+    import time
+    time.sleep(0.1)
+    return data.upper()
 
-result = process_data([1, 2, 3])
-# Logs function calls and returns at DEBUG level
+async_process = sync_to_async(process_data)
+result = await async_process("hello")  # Non-blocking
+
+# Concurrency control (requires async_utils module)
+from devkitx.async_utils.concurrency import gather_with_limit
+
+async def fetch_multiple():
+    urls = ["https://api.example.com/1", "https://api.example.com/2"]
+    tasks = [fetch_data(url) for url in urls]
+    # Limit to 5 concurrent operations
+    results = await gather_with_limit(5, *tasks)
+    return results
 ```
 
-## CLI Interface
+## Optional Utilities
 
-The toolkit also provides a command-line interface for common operations:
+### HTTP Utilities (requires `http` extra)
 
-```bash
-# String manipulation
-devkitx string convert --to snake "CamelCase"
-devkitx string validate --email "user@example.com"
+HTTP clients with safe defaults and retry logic:
 
-# Configuration management
-devkitx config merge config1.json config2.yaml
+```python
+# Install with: pip install "devkitx[http]"
+from devkitx import make_client, make_async_client
+from devkitx.http_utils.retry import with_retries
 
-# Security utilities
-devkitx security hash --algorithm sha256 "my-data"
-devkitx security generate --type uuid
+# Create HTTP client with safe defaults
+# - 10s connect timeout, 15s read timeout
+# - Connection pooling with limits
+# - HTTP/2 support
+client = make_client(
+    base_url="https://api.example.com",
+    headers={"Authorization": "Bearer token"}
+)
 
-# System information
-devkitx system info
-devkitx system find-executable python
+response = client.get("/users")
+print(response.json())
 
-# Time utilities
-devkitx time parse "2024-01-15 14:30:00"
-devkitx time format-duration 3661
+# Async HTTP client
+async def fetch_data():
+    async_client = make_async_client(base_url="https://api.example.com")
+    response = await async_client.get("/data")
+    return response.json()
+
+# Retry logic with exponential backoff
+def unreliable_request():
+    response = client.get("/flaky-endpoint")
+    if response.status_code >= 500:
+        raise Exception("Server error")
+    return response
+
+# Retry up to 3 times with exponential backoff and jitter
+result = with_retries(
+    unreliable_request,
+    retries=3,
+    base_delay=0.2,
+    jitter=0.2
+)
 ```
+
+### Security Utilities (requires `jwt` extra)
+
+JWT token utilities with safe defaults:
+
+```python
+# Install with: pip install "devkitx[jwt]"
+from devkitx.security_utils.jwt_ import generate_jwt_token, verify_jwt_token
+
+# Generate JWT token with safe defaults
+# - Uses HS256 algorithm
+# - Requires exp and iat claims
+# - Supports issuer and audience validation
+payload = {"user_id": 123, "role": "admin"}
+token = generate_jwt_token(
+    payload,
+    secret="your-secret-key",
+    expires_in=3600,  # 1 hour
+    issuer="your-app",
+    audience="your-users"
+)
+
+# Verify JWT token with proper validation
+try:
+    decoded = verify_jwt_token(
+        token,
+        secret="your-secret-key",
+        issuer="your-app",
+        audience="your-users",
+        leeway=10  # Allow 10 seconds clock skew
+    )
+    print(f"User: {decoded['user_id']}, Role: {decoded['role']}")
+except Exception as e:
+    print(f"Token validation failed: {e}")
+```
+
+> **Security Note**: JWT utilities use HS256 algorithm by default and require proper secret key management. Always validate issuer, audience, and implement key rotation in production.
+
+## API Reference
+
+For detailed API documentation, see the individual module files:
+
+- **Core utilities**: Always available after `pip install devkitx`
+  - `flatten_json()` - Flatten nested JSON structures
+  - `async_to_sync()` - Convert async functions to sync
+  - `sync_to_async()` - Convert sync functions to async
+
+- **HTTP utilities**: Available with `pip install "devkitx[http]"`
+  - `make_client()` - Create HTTP client with safe defaults
+  - `make_async_client()` - Create async HTTP client
+  - `with_retries()` - Retry logic with exponential backoff
+
+- **Security utilities**: Available with `pip install "devkitx[jwt]"`
+  - `generate_jwt_token()` - Generate JWT tokens with safe defaults
+  - `verify_jwt_token()` - Verify JWT tokens with proper validation
+
+- **Async utilities**: Advanced async patterns
+  - `gather_with_limit()` - Execute awaitables with concurrency limits
 
 ## Requirements
 
 - Python 3.10 or higher
-- Dependencies: `httpx`, `click`, `rich`, `bcrypt`, `PyJWT`
+- Core package has minimal dependencies (only `typing-extensions` for Python < 3.11)
+- Optional features require additional packages (see Installation section)
 
 ## Development
 
@@ -480,16 +311,15 @@ devkitx time format-duration 3661
 git clone https://github.com/ladycami/devkitx.git
 cd devkitx
 
-# Install in development mode
-pip install -e ".[dev]"
+# Install in development mode with all extras
+pip install -e ".[http,cli,jwt,bcrypt,yaml,toml,dev]"
 
 # Run tests
 pytest
 
-# Run linting
-ruff check src/
-black --check src/
-mypy src/
+# Run linting and type checking
+ruff check .
+mypy devkitx
 ```
 
 ## Contributing
@@ -500,14 +330,149 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Security Considerations
+
+DevKitX includes security utilities with safe defaults, but proper security requires understanding their scope and limitations.
+
+### JWT Security
+
+The JWT utilities in DevKitX provide secure defaults but require proper implementation:
+
+**Safe Defaults:**
+- Uses HS256 algorithm (HMAC with SHA-256)
+- Requires `exp` (expiration) and `iat` (issued at) claims
+- Supports `iss` (issuer) and `aud` (audience) validation
+- Configurable clock skew tolerance (`leeway`)
+
+**Best Practices:**
+```python
+from devkitx.security_utils.jwt_ import generate_jwt_token, verify_jwt_token
+
+# ✅ Good: Include issuer and audience
+token = generate_jwt_token(
+    {"user_id": 123},
+    secret="your-256-bit-secret",
+    expires_in=900,  # 15 minutes, not hours
+    issuer="your-app-name",
+    audience="your-app-users"
+)
+
+# ✅ Good: Validate issuer and audience
+decoded = verify_jwt_token(
+    token,
+    secret="your-256-bit-secret",
+    issuer="your-app-name",
+    audience="your-app-users"
+)
+```
+
+**Security Requirements:**
+- **Secret Management**: Use strong, randomly generated secrets (≥256 bits)
+- **Key Rotation**: Implement regular secret key rotation
+- **Short Expiration**: Use short-lived tokens (15-60 minutes)
+- **HTTPS Only**: Always transmit tokens over HTTPS
+- **Secure Storage**: Store tokens securely (httpOnly cookies, not localStorage)
+
+### HTTP Security
+
+HTTP utilities include safe defaults but don't handle all security concerns:
+
+**Included Protections:**
+- Connection timeouts prevent hanging requests
+- Connection pooling limits prevent resource exhaustion
+- HTTP/2 support for better performance
+
+**Not Included (implement separately):**
+- Request/response validation
+- Authentication headers management
+- Rate limiting
+- SSL certificate verification (relies on httpx defaults)
+
+### Input Sanitization Scope
+
+DevKitX does **not** currently include comprehensive input sanitization. The security utilities focus on:
+
+**Covered:**
+- JWT token generation and validation
+- Safe HTTP client defaults
+
+**Not Covered (use dedicated libraries):**
+- SQL injection prevention → Use parameterized queries
+- XSS prevention → Use template engines with auto-escaping
+- Command injection prevention → Avoid shell=True, validate inputs
+- Path traversal prevention → Use pathlib, validate file paths
+
+### Recommended Security Libraries
+
+For comprehensive security, combine DevKitX with specialized libraries:
+
+```python
+# SQL injection prevention
+import sqlalchemy  # Use parameterized queries
+
+# XSS prevention  
+import markupsafe  # Safe HTML handling
+import bleach      # HTML sanitization
+
+# Input validation
+import pydantic    # Data validation with types
+import cerberus    # Schema validation
+
+# Cryptography
+import cryptography  # Advanced crypto operations
+import bcrypt       # Password hashing (available as devkitx[bcrypt])
+```
+
+### Security Reporting
+
+If you discover security vulnerabilities in DevKitX, please report them responsibly:
+
+1. **Do not** create public GitHub issues for security vulnerabilities
+2. Email security concerns to the maintainers
+3. Include detailed reproduction steps
+4. Allow reasonable time for fixes before public disclosure
+
+## Package History
+
+### Package Rename Notice
+
+This package was previously named `devtools-py` but has been renamed to `devkitx` to avoid confusion with Samuel Colvin's `devtools` package. If you were using the old package name, please update your dependencies:
+
+```bash
+# Old (deprecated)
+pip uninstall devtools-py
+# New
+pip install devkitx
+```
+
+Update your imports:
+```python
+# Old
+from devtools_py import some_function
+# New  
+from devkitx import some_function
+```
+
 ## Changelog
 
-### v1.0.0 (Upcoming)
-- Initial release with comprehensive utility modules
-- Full type annotations and Python 3.10+ support
-- Async utilities and HTTP client with retry logic
-- Security utilities with JWT and bcrypt support
-- Rich CLI interface with progress bars and colored output
-- Multi-format configuration management
-- Development and debugging tools
-- Comprehensive test suite with 90%+ coverage
+### v1.0.1 (2025-09-16)
+
+#### Changed
+- **BREAKING**: Renamed package from `devtools-py` to `devkitx`
+- Updated development status to Beta (was incorrectly marked as Production/Stable)
+- Restructured as lightweight core package with optional extras
+- Updated all project URLs to point to correct repository
+
+#### Added
+- HTTP clients with safe defaults (10s connect, 15s read timeout)
+- Async bridge utilities with proper event loop handling
+- JWT utilities with secure defaults and proper validation
+- JSON flattening utility with configurable separators
+- Retry logic with exponential backoff and jitter
+- Type annotations with `py.typed` marker
+- Minimal test suite with CI/CD pipeline
+
+#### Fixed
+- Import statements now use correct `devkitx` namespace
+- Package metadata points to correct repository
+- Optional dependencies properly isolated with extras

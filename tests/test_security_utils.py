@@ -5,7 +5,7 @@ import bcrypt
 import base64
 import uuid
 import hashlib
-from devtools_py.security_utils import (
+from devkitx.security_utils import (
     hash_password,
     verify_password,
     generate_secret_key,
