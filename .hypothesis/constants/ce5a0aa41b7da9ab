@@ -1,4 +1,0 @@
-# file: /Users/lc3053/repos/dev-qol-toolkit/src/devtools_py/cli_utils.py
-# hypothesis_version: 6.138.16
-
-[0.1, 0.5, 200, ',', 'Choose:', 'Confirm password: ', 'Processing...', 'Select multiple:', 'T', '[Y/n]', '[y/N]', 'all', 'cyan', 'n', 'no', 'store_true', 'y', 'yes', '|/-\\']

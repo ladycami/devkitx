@@ -1,15 +1,54 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.egg-info/
 .venv/
-.env
+venv/
+env/
+ENV/
 dist/
 build/
 .coverage
 htmlcov/
 .mypy_cache/
 .pytest_cache/
+.tox/
+.eggs/
 
+# Security & Secrets
+.env
+.env.*
+!.env.example
+!.env.template
+.pypirc
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+.secrets
+config/secrets/
+credentials.json
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Kiro
 .kiro/

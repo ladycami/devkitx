@@ -1,67 +1,56 @@
-"""DevKitX - A pragmatic Python toolkit for HTTP, JSON, async bridges, security, and CLI.
+"""DevKitX - Security-first Python utilities for regulated environments.
 
-This package provides curated utilities for common development tasks with a focus
-on safety, simplicity, and reliability. Core functionality is always available,
-while specialized features are available through optional dependencies.
+This package provides security and compliance-focused utilities for government,
+healthcare, and financial applications. Features include audit logging, PII detection,
+secrets scanning, and secure defaults.
 
-Core utilities (always available):
-    flatten_json: Flatten nested JSON structures into dot-notation keys
-    async_to_sync: Convert async functions to sync with proper event loop handling
-    sync_to_async: Convert sync functions to async using thread executors
-
-Optional utilities (require extras):
-    HTTP clients with safe defaults (requires 'http' extra)
-    JWT utilities with secure defaults (requires 'jwt' extra)
-    CLI utilities with rich formatting (requires 'cli' extra)
+Core features:
+    - NIST 800-53 compliant audit logging
+    - PII detection and scanning
+    - Secrets scanning for hardcoded credentials
+    - Secure HTTP clients with production defaults
+    - Configuration management with secret detection
+    - Async/sync conversion utilities
 
 Example:
-    >>> from devkitx import flatten_json, async_to_sync
-    >>> flat = flatten_json({"user": {"name": "John", "age": 30}})
-    >>> # {'user.name': 'John', 'user.age': 30}
+    >>> from devkitx.compliance import AuditLogger
+    >>> from devkitx.security import SecretsScanner
     >>> 
-    >>> async def fetch_data(): return "data"
-    >>> sync_fetch = async_to_sync(fetch_data)
-    >>> result = sync_fetch()  # "data"
+    >>> # Audit logging
+    >>> logger = AuditLogger(service="my-api")
+    >>> logger.log_auth("user_login", user_id="123", outcome="success")
+    >>> 
+    >>> # Security scanning
+    >>> scanner = SecretsScanner()
+    >>> matches = scanner.scan_directory("./src")
 """
 
 from ._version import __version__
 
-# Core utilities (always available)
-from .json_utils.flatten import flatten_json
-from .async_utils import async_to_sync, sync_to_async
+# Re-export micro-package functionality
+from asyncbridge import async_to_sync, sync_to_async
+from httpx_defaults import Client as SecureClient, AsyncClient as SecureAsyncClient
+from confmerge import load as load_config, merge as merge_config
 
-# Optional utilities (gracefully handle missing dependencies)
-try:
-    from .http_utils import make_client, make_async_client
-except (ImportError, AttributeError):
-    # HTTP utilities not available without httpx extra
-    pass
+# Core utilities
+from .utils.json_utils import flatten_json
+from .utils.string_utils import to_snake_case, to_camel_case, to_pascal_case, to_kebab_case
 
-try:
-    from .security_utils import generate_jwt_token, verify_jwt_token
-except ImportError:
-    # JWT utilities not available without jwt extra
-    pass
-
-# Build __all__ dynamically based on available features
 __all__ = [
     "__version__",
-    "flatten_json",
-    "async_to_sync", 
+    # Async utilities
+    "async_to_sync",
     "sync_to_async",
+    # HTTP utilities
+    "SecureClient",
+    "SecureAsyncClient", 
+    # Config utilities
+    "load_config",
+    "merge_config",
+    # Core utilities
+    "flatten_json",
+    "to_snake_case",
+    "to_camel_case", 
+    "to_pascal_case",
+    "to_kebab_case",
 ]
-
-# Add optional utilities to __all__ if they're available
-try:
-    make_client
-    make_async_client
-    __all__.extend(["make_client", "make_async_client"])
-except NameError:
-    pass
-
-try:
-    generate_jwt_token
-    verify_jwt_token
-    __all__.extend(["generate_jwt_token", "verify_jwt_token"])
-except NameError:
-    pass
