@@ -30,7 +30,7 @@ from ._version import __version__
 # Re-export micro-package functionality
 from asyncbridge import async_to_sync, sync_to_async
 from httpx_defaults import Client as SecureClient, AsyncClient as SecureAsyncClient
-from confmerge import load as load_config, merge as merge_config
+from configmerge import load as load_config, merge as merge_config
 
 # Core utilities
 from .utils.json_utils import flatten_json
