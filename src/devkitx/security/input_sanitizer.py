@@ -14,9 +14,27 @@ __all__ = ["sanitize_html", "sanitize_sql_identifier", "sanitize_filename"]
 # the page is parsed. They are never allowed, even if a caller lists them.
 _FORBIDDEN_TAGS = frozenset(
     {
-        "script", "style", "iframe", "frame", "frameset", "object", "embed",
-        "applet", "svg", "math", "template", "base", "link", "meta", "form",
-        "input", "button", "textarea", "select", "option", "noscript",
+        "script",
+        "style",
+        "iframe",
+        "frame",
+        "frameset",
+        "object",
+        "embed",
+        "applet",
+        "svg",
+        "math",
+        "template",
+        "base",
+        "link",
+        "meta",
+        "form",
+        "input",
+        "button",
+        "textarea",
+        "select",
+        "option",
+        "noscript",
     }
 )
 
@@ -52,7 +70,9 @@ class _AllowlistSanitizer(HTMLParser):
     devkitx 2.0. Comments, doctypes and processing instructions are dropped.
     """
 
-    def __init__(self, allowed_tags: frozenset[str], allowed_attributes: Mapping[str, frozenset[str]]):
+    def __init__(
+        self, allowed_tags: frozenset[str], allowed_attributes: Mapping[str, frozenset[str]]
+    ):
         super().__init__(convert_charrefs=True)
         self._tags = allowed_tags
         self._attrs = allowed_attributes
@@ -187,9 +207,28 @@ def sanitize_sql_identifier(identifier: str) -> str:
 
     # Check for SQL keywords (basic list)
     sql_keywords = {
-        "select", "insert", "update", "delete", "drop", "create", "alter",
-        "table", "database", "index", "view", "trigger", "procedure", "function",
-        "union", "join", "where", "having", "group", "order", "limit", "offset"
+        "select",
+        "insert",
+        "update",
+        "delete",
+        "drop",
+        "create",
+        "alter",
+        "table",
+        "database",
+        "index",
+        "view",
+        "trigger",
+        "procedure",
+        "function",
+        "union",
+        "join",
+        "where",
+        "having",
+        "group",
+        "order",
+        "limit",
+        "offset",
     }
 
     if identifier.lower() in sql_keywords:

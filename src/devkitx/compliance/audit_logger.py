@@ -32,6 +32,7 @@ class AuditEvent:
 
     NIST AU-3 requires: what, when, where, source, outcome, identity.
     """
+
     # What happened
     event_type: str
     action: str
@@ -141,7 +142,9 @@ def verify_chain(
             raise AuditChainError(line_number, f"not a chained audit event ({exc})") from None
         expected = _chain_hash(expected_previous, record, hmac_key)
         if not hmac.compare_digest(recorded, expected):
-            raise AuditChainError(line_number, "chain hash mismatch (event altered, removed or reordered)")
+            raise AuditChainError(
+                line_number, "chain hash mismatch (event altered, removed or reordered)"
+            )
         expected_previous = recorded
         count += 1
     return count

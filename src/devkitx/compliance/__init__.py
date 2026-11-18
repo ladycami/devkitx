@@ -1,8 +1,8 @@
 """Compliance utilities for regulated environments."""
 
-from .audit_logger import AuditLogger, AuditEvent, AuditChainError, verify_chain
-from .pii_detector import PIIDetector, PIIMatch
+from .audit_logger import AuditChainError, AuditEvent, AuditLogger, verify_chain
 from .nist_controls import NISTControl, get_controls_for
+from .pii_detector import PIIDetector, PIIMatch
 
 __all__ = [
     "AuditLogger",

@@ -105,7 +105,9 @@ def test_sanitize_html_keeps_safe_allowlisted_attributes() -> None:
 
 
 def test_sanitize_html_event_handlers_cannot_be_allowlisted() -> None:
-    out = sanitize_html('<b onclick="x()" style="color:red">t</b>', {"b"}, {"b": {"onclick", "style"}})
+    out = sanitize_html(
+        '<b onclick="x()" style="color:red">t</b>', {"b"}, {"b": {"onclick", "style"}}
+    )
     assert out == "<b>t</b>"
 
 
@@ -117,7 +119,9 @@ def test_sanitize_html_refuses_dangerous_allowlist(tag: str) -> None:
 
 def test_sanitize_html_escapes_text_and_disallowed_tags() -> None:
     out = sanitize_html("<script>alert('x')</script><u>u</u>&<b>b</b>", {"b"})
-    assert out == "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt;&lt;u&gt;u&lt;/u&gt;&amp;<b>b</b>"
+    assert (
+        out == "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt;&lt;u&gt;u&lt;/u&gt;&amp;<b>b</b>"
+    )
 
 
 def test_sanitize_html_closes_unclosed_tags() -> None:
@@ -280,7 +284,15 @@ def test_secure_hash_default_unchanged() -> None:
 
 @pytest.mark.parametrize(
     "name",
-    ["../../etc/passwd", "..\\..\\windows\\win.ini", "a\x00b.txt", "a\nb", "∕etc∕passwd", "..", "/"],
+    [
+        "../../etc/passwd",
+        "..\\..\\windows\\win.ini",
+        "a\x00b.txt",
+        "a\nb",
+        "∕etc∕passwd",
+        "..",
+        "/",
+    ],
 )
 def test_sanitize_filename_is_single_safe_component(name: str) -> None:
     out = sanitize_filename(name)

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
     import typer
     from rich.console import Console
     from rich.table import Table
+
     _CLI_AVAILABLE = True
 except ImportError:
     _CLI_AVAILABLE = False
@@ -25,10 +27,7 @@ if _CLI_AVAILABLE:
 def check_cli_deps() -> None:
     """Check CLI dependencies are installed."""
     if not _CLI_AVAILABLE:
-        print(
-            "CLI requires additional dependencies.\n"
-            "Install with: pip install 'devkitx[cli]'"
-        )
+        print("CLI requires additional dependencies.\nInstall with: pip install 'devkitx[cli]'")
         sys.exit(1)
 
 
@@ -47,42 +46,54 @@ if _CLI_AVAILABLE:
     ) -> None:
         """Scan for hardcoded secrets in source code."""
         from ..security import SecretsScanner
-        
+
         scanner = SecretsScanner()
         matches = list(scanner.scan_directory(path))
-        
+
         if not matches:
             console.print("[green]✓ No secrets found[/green]")
             return
-        
+
         if output == "json":
             import json
-            print(json.dumps([{
-                "type": m.secret_type,
-                "file": m.file_path,
-                "line": m.line_number,
-                "severity": m.severity,
-            } for m in matches], indent=2))
+
+            print(
+                json.dumps(
+                    [
+                        {
+                            "type": m.secret_type,
+                            "file": m.file_path,
+                            "line": m.line_number,
+                            "severity": m.severity,
+                        }
+                        for m in matches
+                    ],
+                    indent=2,
+                )
+            )
             return
-        
+
         # Table output
         table = Table(title=f"Secrets Found: {len(matches)}")
         table.add_column("Severity", style="bold")
         table.add_column("Type")
         table.add_column("File")
         table.add_column("Line")
-        
+
         severity_colors = {
             "critical": "red",
             "high": "yellow",
             "medium": "blue",
             "low": "dim",
         }
-        
-        for match in sorted(matches, key=lambda m: (
-            {"critical": 0, "high": 1, "medium": 2, "low": 3}[m.severity],
-            m.file_path,
-        )):
+
+        for match in sorted(
+            matches,
+            key=lambda m: (
+                {"critical": 0, "high": 1, "medium": 2, "low": 3}[m.severity],
+                m.file_path,
+            ),
+        ):
             color = severity_colors.get(match.severity, "white")
             table.add_row(
                 f"[{color}]{match.severity.upper()}[/{color}]",
@@ -90,7 +101,7 @@ if _CLI_AVAILABLE:
                 match.file_path,
                 str(match.line_number),
             )
-        
+
         console.print(table)
         sys.exit(1)  # Exit with error if secrets found
 
@@ -100,20 +111,20 @@ if _CLI_AVAILABLE:
     ) -> None:
         """Scan for PII (personally identifiable information)."""
         from ..compliance import PIIDetector
-        
+
         detector = PIIDetector()
         matches = list(detector.scan_directory(path))
-        
+
         if not matches:
             console.print("[green]✓ No PII found[/green]")
             return
-        
+
         table = Table(title=f"PII Found: {len(matches)}")
         table.add_column("Type")
         table.add_column("Value (Redacted)")
         table.add_column("File")
         table.add_column("Line")
-        
+
         for match in matches[:100]:  # Limit output
             table.add_row(
                 match.pii_type,
@@ -121,10 +132,10 @@ if _CLI_AVAILABLE:
                 match.file_path,
                 str(match.line_number),
             )
-        
+
         if len(matches) > 100:
             console.print(f"[dim]... and {len(matches) - 100} more[/dim]")
-        
+
         console.print(table)
 
     @audit_app.command("deps")
@@ -132,26 +143,29 @@ if _CLI_AVAILABLE:
         path: Path = typer.Argument(Path("."), help="Project path"),
     ) -> None:
         """Check dependencies for known vulnerabilities."""
+        import importlib.util
         import subprocess
-        
-        console.print("[bold]Checking dependencies for vulnerabilities...[/bold]\n")
-        
-        # Try pip-audit first
-        try:
-            result = subprocess.run(
-                ["pip-audit", "--strict"],
-                cwd=path,
-                capture_output=True,
-                text=True,
-            )
-            print(result.stdout)
-            if result.returncode != 0:
-                print(result.stderr)
-                sys.exit(1)
-        except FileNotFoundError:
+
+        if importlib.util.find_spec("pip_audit") is None:
             console.print(
                 "[yellow]pip-audit not found. Install with: pip install pip-audit[/yellow]"
             )
+            sys.exit(1)
+
+        console.print("[bold]Checking dependencies for vulnerabilities...[/bold]\n")
+
+        # Run pip-audit through this interpreter's absolute path rather than
+        # whatever "pip-audit" resolves to on PATH.
+        result = subprocess.run(  # noqa: S603 - fixed argument list, no user input
+            [sys.executable, "-m", "pip_audit", "--strict"],
+            cwd=path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print(result.stdout)
+        if result.returncode != 0:
+            print(result.stderr)
             sys.exit(1)
 
 
@@ -169,8 +183,9 @@ if _CLI_AVAILABLE:
     ) -> None:
         """Flatten nested JSON to dot notation."""
         import json
+
         from ..utils.json_utils import flatten_json
-        
+
         data = json.loads(path.read_text())
         flat = flatten_json(data)
         print(json.dumps(flat, indent=2))
@@ -182,16 +197,16 @@ if _CLI_AVAILABLE:
     ) -> None:
         """Show differences between two JSON files."""
         import json
-        
+
         data1 = json.loads(file1.read_text())
         data2 = json.loads(file2.read_text())
-        
-        def diff_dict(d1: dict, d2: dict, path: str = "") -> None:
+
+        def diff_dict(d1: dict[str, Any], d2: dict[str, Any], path: str = "") -> None:
             all_keys = set(d1.keys()) | set(d2.keys())
-            
+
             for key in sorted(all_keys):
                 current_path = f"{path}.{key}" if path else key
-                
+
                 if key not in d1:
                     console.print(f"[green]+ {current_path}: {d2[key]}[/green]")
                 elif key not in d2:
@@ -201,7 +216,7 @@ if _CLI_AVAILABLE:
                 elif d1[key] != d2[key]:
                     console.print(f"[red]- {current_path}: {d1[key]}[/red]")
                     console.print(f"[green]+ {current_path}: {d2[key]}[/green]")
-        
+
         diff_dict(data1, data2)
 
 
@@ -220,18 +235,18 @@ if _CLI_AVAILABLE:
     ) -> None:
         """Convert string between case formats."""
         from ..utils import string_utils
-        
+
         converters = {
             "snake": string_utils.to_snake_case,
             "camel": string_utils.to_camel_case,
             "pascal": string_utils.to_pascal_case,
             "kebab": string_utils.to_kebab_case,
         }
-        
+
         if to not in converters:
             console.print(f"[red]Unknown case: {to}[/red]")
             sys.exit(1)
-        
+
         print(converters[to](text))
 
 
@@ -240,6 +255,7 @@ if _CLI_AVAILABLE:
 # ============================================================================
 
 if _CLI_AVAILABLE:
+
     @app.command()
     def init(
         name: str = typer.Argument(..., help="Project name"),
@@ -250,13 +266,16 @@ if _CLI_AVAILABLE:
         if path.exists():
             console.print(f"[red]Directory {name} already exists[/red]")
             sys.exit(1)
-        
+
         # Create basic project structure
         path.mkdir()
-        
+
         # Create basic files
-        (path / "README.md").write_text(f"# {name}\n\nA secure Python project created with DevKitX.\n")
-        (path / ".gitignore").write_text("""
+        (path / "README.md").write_text(
+            f"# {name}\n\nA secure Python project created with DevKitX.\n"
+        )
+        (path / ".gitignore").write_text(
+            """
 # Python
 __pycache__/
 *.py[cod]
@@ -304,19 +323,21 @@ Thumbs.db
 *.pem
 secrets.json
 .secrets
-""".strip())
-        
+""".strip()
+        )
+
         console.print(f"[green]✓ Created project: {name}[/green]")
-        console.print(f"\nNext steps:")
+        console.print("\nNext steps:")
         console.print(f"  cd {name}")
-        console.print(f"  python -m venv .venv")
-        console.print(f"  source .venv/bin/activate  # On Windows: .venv\\Scripts\\activate")
-        console.print(f"  pip install devkitx[all]")
+        console.print("  python -m venv .venv")
+        console.print("  source .venv/bin/activate  # On Windows: .venv\\Scripts\\activate")
+        console.print("  pip install devkitx[all]")
 
 
 # ============================================================================
 # MAIN ENTRY POINT
 # ============================================================================
+
 
 def main() -> None:
     """CLI entry point."""

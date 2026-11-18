@@ -33,6 +33,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - README told users to `pip install confmerge`, an unrelated third-party package.
+- `SecureClient.request()` crashed when given an `httpx.URL` object instead of a string.
+- Plain-HTTP warning now checks the parsed host (so `http://localhost.evil.com`
+  warns) and also fires for `SecureAsyncClient`, which never warned before.
+- PII detector missed the opening parenthesis of numbers like `(555) 987-6543`;
+  the email pattern accepted `|` in the top-level domain.
+- Config files whose top level is not a mapping now raise `ValueError` instead of
+  returning a non-dict.
+- `bcrypt` (needed for `hash_password`/`verify_password`) is now declared as the
+  `crypto` extra and included in `all`.
+- `devkitx audit deps` runs pip-audit via the current interpreter instead of
+  resolving `pip-audit` from `PATH`.
+- Project URLs pointed at a `SerityOps/devkitx` repository and a Read the Docs
+  site that do not exist; they now point at `ladycami/devkitx`.
+
+### Internal
+- CI runs on `develop` and pull requests (the old workflow targeted a `main`
+  branch that does not exist): ruff, ruff format, strict mypy on 3.10 and 3.13
+  semantics, tests on Python 3.10-3.13 with a coverage floor, doctests, bandit,
+  pip-audit, and a build + clean-install check. Actions are pinned by commit SHA.
+- ruff and mypy (strict) are clean; ruff's security rules (`S`) are enabled.
 
 ## [2.0.1] - 2025-12-31
 
