@@ -73,7 +73,11 @@ jobs:
       - name: bandit
         run: bandit -q -r src -ll
       - name: pip-audit (installed dependencies)
-        run: pip-audit --strict
+        # Audit everything installed except devkitx itself: an unreleased
+        # version can't be looked up on PyPI and would fail --strict.
+        run: |
+          pip freeze --exclude devkitx > "$RUNNER_TEMP/requirements-audit.txt"
+          pip-audit --strict --disable-pip --no-deps -r "$RUNNER_TEMP/requirements-audit.txt"
 
   build:
     name: Build and install check
