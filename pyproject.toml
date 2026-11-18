@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "devkitx"
-version = "2.0.1"
+version = "2.1.0"
 description = "Security-first Python utilities for government, healthcare, and financial applications."
 readme = "README.md"
 license = { text = "MIT" }

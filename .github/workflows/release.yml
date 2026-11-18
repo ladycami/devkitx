@@ -1,0 +1,100 @@
+name: Release
+
+# Publishes to PyPI when a version tag (v1.2.3) is pushed.
+# Uses PyPI trusted publishing (OIDC): no API token is stored in GitHub.
+# One-time setup on pypi.org -> devkitx -> Settings -> Publishing:
+#   owner: ladycami, repository: devkitx, workflow: release.yml, environment: pypi
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Verify and build
+    runs-on: ubuntu-latest
+    outputs:
+      already-published: ${{ steps.pypi.outputs.exists }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -U pip
+      - run: pip install -e ".[dev]"
+      - name: Tag must match package version
+        run: |
+          version=$(python -c "import devkitx; print(devkitx.__version__)")
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version ${version}" >&2
+            exit 1
+          fi
+      - name: Tagged commit must be on develop
+        run: |
+          git fetch --no-tags origin develop
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/develop
+      - name: Already on PyPI? (e.g. published locally with scripts/publish.py)
+        id: pypi
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/devkitx/${GITHUB_REF_NAME#v}/json")
+          if [ "$code" = "200" ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          echo "PyPI lookup for ${GITHUB_REF_NAME#v}: HTTP $code"
+      - name: Lint, types and tests
+        run: |
+          ruff check src tests
+          mypy src/devkitx
+          pytest -q --cov-fail-under=55
+      - name: Build
+        run: python -m build
+      - name: twine check
+        run: twine check --strict dist/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    if: needs.build.outputs.already-published != 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/devkitx/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+
+  github-release:
+    name: GitHub release
+    needs: [build, publish]
+    # Runs after a CI publish, or when the version was already published locally.
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - name: Create release with the published files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/develop/CHANGELOG.md). Published to https://pypi.org/project/devkitx/${GITHUB_REF_NAME#v}/"

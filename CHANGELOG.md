@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2026-11-17
 
 ### Security
 - `sanitize_html` with `allowed_tags` no longer passes attributes through. Allowed
@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   site that do not exist; they now point at `ladycami/devkitx`.
 
 ### Internal
+- Releases: pushing a `vX.Y.Z` tag publishes to PyPI from CI via trusted
+  publishing (`.github/workflows/release.yml`); `scripts/publish.py` publishes
+  locally using tokens from a gitignored `.env` (format in `.env.example`).
 - CI runs on `develop` and pull requests (the old workflow targeted a `main`
   branch that does not exist): ruff, ruff format, strict mypy on 3.10 and 3.13
   semantics, tests on Python 3.10-3.13 with a coverage floor, doctests, bandit,

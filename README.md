@@ -303,6 +303,19 @@ DevKitX helps implement several NIST 800-53 security controls:
 - Python 3.10+
 - Core dependency: httpx
 
+## Releasing
+
+1. Merge the release changes to `develop` (version in `pyproject.toml` and
+   `src/devkitx/_version.py`, dated entry in `CHANGELOG.md`).
+2. Tag the merge commit and push the tag: `git tag -a v2.1.0 -m v2.1.0 && git push origin v2.1.0`.
+3. CI (`.github/workflows/release.yml`) re-runs the checks, publishes to PyPI with
+   trusted publishing (no token stored anywhere) and creates the GitHub release.
+
+To publish from your machine instead, put tokens in a local `.env` (copy
+`.env.example`; it is gitignored and must never be committed) and run
+`python scripts/publish.py --test` for TestPyPI or `python scripts/publish.py`
+for PyPI. Use `--dry-run` to build and check without uploading.
+
 ## License
 
 MIT License - Free for commercial use
