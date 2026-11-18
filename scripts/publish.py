@@ -27,6 +27,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -102,8 +103,13 @@ def package_version(repo: Path) -> str:
 
 
 def already_published(json_url: str) -> bool:
+    # Bypass PyPI's CDN cache: a cached 404 can outlive an upload by minutes,
+    # and this lookup itself would otherwise prime that cache.
+    request = urllib.request.Request(
+        f"{json_url}?nocache={time.time_ns()}", headers={"Cache-Control": "no-cache"}
+    )
     try:
-        with urllib.request.urlopen(json_url, timeout=20):  # noqa: S310 - fixed https URL
+        with urllib.request.urlopen(request, timeout=20):  # noqa: S310 - fixed https URL
             return True
     except urllib.error.HTTPError as err:
         if err.code == 404:

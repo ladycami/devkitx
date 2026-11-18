@@ -42,7 +42,10 @@ jobs:
       - name: Already on PyPI? (e.g. published locally with scripts/publish.py)
         id: pypi
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/devkitx/${GITHUB_REF_NAME#v}/json")
+          # Unique query string + no-cache: PyPI's CDN can serve a cached 404
+          # for a few minutes after an upload.
+          code=$(curl -s -o /dev/null -w "%{http_code}" -H "Cache-Control: no-cache" \
+            "https://pypi.org/pypi/devkitx/${GITHUB_REF_NAME#v}/json?run=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")
           if [ "$code" = "200" ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
           echo "PyPI lookup for ${GITHUB_REF_NAME#v}: HTTP $code"
       - name: Lint, types and tests
@@ -76,6 +79,9 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          # Backstop if the version was already uploaded (e.g. locally).
+          skip-existing: true
 
   github-release:
     name: GitHub release
