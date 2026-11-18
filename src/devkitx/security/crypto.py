@@ -112,24 +112,42 @@ def generate_secret_key(length: int = 32) -> str:
     return base64.b64encode(key_bytes).decode("utf-8")
 
 
+#: Algorithms accepted by :func:`secure_hash`. MD5 and SHA-1 are excluded
+#: because practical collision attacks exist for both.
+SECURE_HASH_ALGORITHMS = frozenset(
+    {"sha256", "sha384", "sha512", "sha3_256", "sha3_384", "sha3_512", "blake2b", "blake2s"}
+)
+
+
 def secure_hash(data: str | bytes, algorithm: str = "sha256") -> str:
     """Compute secure hash of data.
-    
+
     Args:
         data: Data to hash
-        algorithm: Hash algorithm (default: sha256)
-        
+        algorithm: One of :data:`SECURE_HASH_ALGORITHMS` (default: sha256)
+
     Returns:
         Hex-encoded hash
-        
+
+    Raises:
+        ValueError: If ``algorithm`` is not in :data:`SECURE_HASH_ALGORITHMS`
+            (for example ``md5`` or ``sha1``).
+
     Example:
         >>> hash_val = secure_hash("hello world")
         >>> len(hash_val) == 64  # SHA256 = 64 hex chars
         True
     """
+    name = algorithm.lower()
+    # Accept common spellings: "SHA-256" -> "sha256", "sha3-256" -> "sha3_256".
+    algorithm = name.replace("-", "_") if name.startswith("sha3") else name.replace("-", "")
+    if algorithm not in SECURE_HASH_ALGORITHMS:
+        allowed = ", ".join(sorted(SECURE_HASH_ALGORITHMS))
+        raise ValueError(f"Insecure or unsupported hash algorithm {algorithm!r}; use one of: {allowed}")
+
     if isinstance(data, str):
         data = data.encode("utf-8")
-    
+
     hasher = hashlib.new(algorithm)
     hasher.update(data)
     return hasher.hexdigest()

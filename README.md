@@ -173,6 +173,24 @@ logger.log_change(
 )
 ```
 
+#### Tamper evidence (AU-9)
+
+Every event carries a hash that chains it to the previous one and covers its
+full content. Pass a secret key, kept outside the log, so the chain can't be
+recomputed by someone who edits the file:
+
+```python
+import os
+from pathlib import Path
+from devkitx.compliance import AuditLogger, verify_chain
+
+key = os.environ["AUDIT_HMAC_KEY"].encode()
+logger = AuditLogger(service="user-api", output=Path("audit.log"), hmac_key=key)
+logger.log_auth(action="login", user_id="user123")
+
+verify_chain(Path("audit.log"), hmac_key=key)  # raises AuditChainError if altered
+```
+
 ### Security Scanning
 
 ```python
@@ -259,7 +277,7 @@ DevKitX helps implement several NIST 800-53 security controls:
 
 - **AU-2 (Audit Events)**: AuditLogger identifies auditable events
 - **AU-3 (Content of Audit Records)**: Structured logging with required fields
-- **AU-9 (Protection of Audit Information)**: Tamper-evident audit chains
+- **AU-9 (Protection of Audit Information)**: Hash-chained audit events, keyed with HMAC-SHA256 when `hmac_key` is set; verify with `verify_chain()`
 - **SA-3 (System Development Life Cycle)**: Security scanning in development
 - **SC-8 (Transmission Confidentiality)**: Secure HTTP defaults
 - **SC-28 (Protection of Information at Rest)**: Secret detection

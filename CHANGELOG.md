@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+- `sanitize_html` with `allowed_tags` no longer passes attributes through. Allowed
+  tags are rebuilt from a parse with no attributes unless listed in the new
+  `allowed_attributes` argument; `on*`, `style` and `srcdoc` are always removed and
+  URL attributes only keep relative, `http`, `https` and `mailto` URLs. Previously
+  `<b onmouseover=...>` and `<a href="javascript:...">` survived (XSS).
+  Tags such as `script`, `iframe` and `svg` can no longer be allowlisted.
+- Audit log chain hashes now cover each event's full content (previously only the
+  event ID and timestamp, so actor, action, outcome and metadata could be edited
+  undetected). Optional `hmac_key` makes the chain keyed (HMAC-SHA256). New
+  `verify_chain()` and `AuditChainError`. File logs continue their chain after a
+  restart, and logging is thread-safe.
+- `secure_hash` only accepts SHA-2, SHA-3 and BLAKE2; `md5` and `sha1` raise
+  `ValueError`.
+- `sanitize_filename` also removes control characters (including NUL), avoids
+  Windows device names (`CON`, `NUL`, ...) and limits names to 255 bytes. Now
+  exported from `devkitx.security`.
+
+### Changed
+- `asyncbridge`, `httpx-defaults` and `configmerge` are now part of devkitx
+  (`devkitx.async_bridge`, `devkitx.http_client`, `devkitx.config`). The only
+  runtime dependency is `httpx`. New extras: `yaml`, `toml`, `http2`.
+- Line endings normalized to LF.
+
+### Fixed
+- README told users to `pip install confmerge`, an unrelated third-party package.
+
+## [2.0.1] - 2025-12-31
+
+Source restored from the PyPI release; no separate changelog was kept for 2.0.x.
+
+## [2.0.0] - 2025-12-31
+
+Security- and compliance-focused rewrite: audit logging, PII detection, secrets
+scanning, input sanitization, NIST 800-53 control mapping and a Typer CLI.
+
 ## [1.0.1] - 2025-09-16
 
 ### Changed
