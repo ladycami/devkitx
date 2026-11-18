@@ -105,7 +105,7 @@ def package_version(repo: Path) -> str:
 def already_published(json_url: str) -> bool:
     # Bypass PyPI's CDN cache: a cached 404 can outlive an upload by minutes,
     # and this lookup itself would otherwise prime that cache.
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310 - fixed https URL
         f"{json_url}?nocache={time.time_ns()}", headers={"Cache-Control": "no-cache"}
     )
     try:
