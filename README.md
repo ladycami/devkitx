@@ -50,16 +50,6 @@ if matches:
     raise ValueError(f"PII detected: {[m.pii_type for m in matches]}")
 ```
 
-## Micro-Packages
-
-Need just one feature? Install the standalone packages:
-
-```bash
-pip install asyncbridge      # Async/sync conversion
-pip install httpx-defaults   # Production-ready HTTP client
-pip install confmerge        # Multi-format config loading
-```
-
 ## Compliance Mapping
 
 DevKitX features map to common compliance frameworks:
@@ -86,18 +76,18 @@ pip install devkitx[cli]
 pip install devkitx[all]
 ```
 
-### Micro-Packages
+### Optional extras
 
 ```bash
-# Zero-dependency async/sync conversion
-pip install asyncbridge
-
-# Production HTTP client with secure defaults
-pip install httpx-defaults
-
-# Multi-format config loading
-pip install confmerge
+pip install devkitx[yaml]    # YAML config files
+pip install devkitx[toml]    # TOML config files on Python 3.10
+pip install devkitx[http2]   # HTTP/2 support for SecureClient
 ```
+
+The async/sync bridge, secure HTTP client and config loader that used to ship
+as the separate `asyncbridge`, `httpx-defaults` and `configmerge` packages are
+now part of devkitx (`devkitx.async_bridge`, `devkitx.http_client`,
+`devkitx.config`).
 
 ## Features
 
@@ -293,7 +283,7 @@ DevKitX helps implement several NIST 800-53 security controls:
 ## Requirements
 
 - Python 3.10+
-- Core dependencies: asyncbridge, httpx-defaults, confmerge
+- Core dependency: httpx
 
 ## License
 

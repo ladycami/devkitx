@@ -27,10 +27,11 @@ Example:
 
 from ._version import __version__
 
-# Re-export micro-package functionality
-from asyncbridge import async_to_sync, sync_to_async
-from httpx_defaults import Client as SecureClient, AsyncClient as SecureAsyncClient
-from configmerge import load as load_config, merge as merge_config
+# Async, HTTP and config helpers (formerly the asyncbridge, httpx-defaults
+# and configmerge packages; now part of devkitx)
+from .async_bridge import async_to_sync, sync_to_async
+from .http_client import Client as SecureClient, AsyncClient as SecureAsyncClient
+from .config import load as load_config, merge as merge_config
 
 # Core utilities
 from .utils.json_utils import flatten_json
